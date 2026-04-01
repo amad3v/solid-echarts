@@ -162,10 +162,9 @@ export const SolidEChart: ParentComponent<SolidEChartProps> = (props) => {
   const [containerElement, setContainerElement] = createSignal<HTMLDivElement | null>(null);
 
   const resolveConfigProp = <T,>(key: keyof ChartConfigContextValue): Accessor<T> =>
-    createMemo(
-      () =>
-        (chartProps[key] === undefined ? configContext[key]() : toAccessor(chartProps[key])()) as T,
-    );
+    (chartProps[key] === undefined
+      ? configContext[key]
+      : toAccessor(chartProps[key])) as Accessor<T>;
 
   // Build merged config: context value is the fallback,
   // component prop wins when explicitly set.
