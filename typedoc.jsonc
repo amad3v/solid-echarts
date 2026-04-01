@@ -1,0 +1,17 @@
+{
+  "$schema": "https://typedoc.org/schema.json",
+  "entryPoints": ["./src/index.ts"],
+  "out": "docs",
+  "plugin": ["typedoc-github-theme"],
+  "tsconfig": "./tsconfig.json",
+  "readme": "README.md",
+  "includeVersion": true,
+  "categorizeByGroup": true,
+  "categoryOrder": ["Components", "Primitives", "Context", "Actions", "Setup", "Types", "*"],
+  "excludeInternal": true,
+  "excludeExternals": true,
+  "excludePrivate": true,
+  "excludeProtected": true,
+  "favicon": "./assets/logo.svg",
+  "projectDocuments": ["manual/*.md"],
+}

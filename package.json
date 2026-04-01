@@ -1,0 +1,71 @@
+{
+  "name": "@amad3v/solid-echarts",
+  "version": "1.0.0",
+  "description": "A SolidJS wrapper for Apache ECharts.",
+  "homepage": "https://codeberg.org/amad3v/solid-echarts",
+  "bugs": {
+    "url": "https://codeberg.org/amad3v/solid-echarts/issues"
+  },
+  "license": "MIT",
+  "author": "amad3v <amad3v@gmail.com>",
+  "repository": {
+    "type": "git",
+    "url": "git+https://codeberg.org/amad3v/solid-echarts.git"
+  },
+  "files": [
+    "dist"
+  ],
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "solid": "./dist/index.jsx",
+      "default": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "tsdown",
+    "chk:fix": "pnpm fmt && pnpm lint:fix",
+    "dev": "tsdown --watch",
+    "fmt": "oxfmt",
+    "fmt:check": "oxfmt --check",
+    "lint": "eslint .",
+    "lint:fix": "pnpm lint --fix",
+    "prepublishOnly": "pnpm run build",
+    "release": "bumpp",
+    "test": "vitest",
+    "test:v8": "vitest --coverage",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "libdocs": "typedoc --favicon ./assets/logo.svg"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@solidjs/testing-library": "^0.8.10",
+    "@types/node": "^25.5.0",
+    "@vitest/coverage-v8": "^4.1.2",
+    "@vitest/eslint-plugin": "^1.6.14",
+    "bumpp": "^11.0.1",
+    "eslint": "^10.1.0",
+    "eslint-plugin-solid": "^0.14.5",
+    "globals": "^17.4.0",
+    "istanbul-reporter-html-dark": "^1.0.1",
+    "jsdom": "^29.0.1",
+    "oxfmt": "^0.43.0",
+    "rolldown-plugin-solid": "^0.2.1",
+    "tsdown": "^0.21.7",
+    "typedoc": "^0.28.18",
+    "typedoc-github-theme": "^0.4.0",
+    "typescript": "^6.0.2",
+    "typescript-eslint": "^8.58.0",
+    "vite-plugin-solid": "^2.11.11",
+    "vitest": "^4.1.2"
+  },
+  "peerDependencies": {
+    "echarts": "^6.0.0",
+    "solid-js": "^1.9.12"
+  }
+}
