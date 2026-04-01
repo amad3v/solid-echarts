@@ -30,19 +30,19 @@
 Install the library:
 
 ```bash
-pnpm add @amad3v/solid-echarts
+pnpm add @amad3v/solid-echarts echarts
 ```
 
 or with npm:
 
 ```bash
-npm install @amad3v/solid-echarts
+npm install @amad3v/solid-echarts echarts
 ```
 
 or with yarn:
 
 ```bash
-yarn add @amad3v/solid-echarts
+yarn add @amad3v/solid-echarts echarts
 ```
 
 ## Setup
@@ -84,9 +84,9 @@ const option = () => ({
 
 [API Reference](https://amad3v.codeberg.page/solid-echarts/)
 
-* [Core Concepts](./manual/1_CORE_CONCEPTS.md)
-* [API Summary](./manual/2_API_SUMMARY.md)
-* [Configuration](./manual/3_CONFIGURATION.md)
+* [Core Concepts](https://codeberg.org/amad3v/solid-echarts/src/commit/4803bc21f97209f52ad9da1cc19f3e9d0467ff10/manual/1_CORE_CONCEPTS.md)
+* [API Summary](https://codeberg.org/amad3v/solid-echarts/src/commit/4803bc21f97209f52ad9da1cc19f3e9d0467ff10/manual/2_API_SUMMARY.md)
+* [Configuration](https://codeberg.org/amad3v/solid-echarts/src/commit/4803bc21f97209f52ad9da1cc19f3e9d0467ff10/manual/3_CONFIGURATION.md)
 
 ## License
 
