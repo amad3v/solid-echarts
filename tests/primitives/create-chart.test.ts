@@ -265,7 +265,7 @@ describe("group", () => {
     expect(echartsCore.connect).toHaveBeenCalledWith("dashboard");
   });
 
-  it("should disconnect old group and connect new group when group signal changes", () => {
+  it("should update group assignment and connect new group when group signal changes", () => {
     const el = document.createElement("div");
     const [container, setContainer] = createSignal<HTMLDivElement | null>(null);
     const [group, setGroup] = createSignal<string | undefined>("group-a");
@@ -277,11 +277,12 @@ describe("group", () => {
 
     setGroup("group-b");
 
-    expect(echartsCore.disconnect).toHaveBeenCalledWith("group-a");
+    expect(echartsCore.disconnect).not.toHaveBeenCalled();
     expect(echartsCore.connect).toHaveBeenCalledWith("group-b");
+    expect(chart.group).toBe("group-b");
   });
 
-  it("should disconnect group on root dispose", () => {
+  it("should clear group on root dispose without disconnecting", () => {
     const el = document.createElement("div");
     const [container, setContainer] = createSignal<HTMLDivElement | null>(null);
     const chart = createMockInstance();
@@ -293,7 +294,8 @@ describe("group", () => {
     disposeRoot?.();
     disposeRoot = undefined;
 
-    expect(echartsCore.disconnect).toHaveBeenCalledWith("dashboard");
+    expect(echartsCore.disconnect).not.toHaveBeenCalled();
+    expect(chart.group).toBe("");
   });
 
   it("should not call connect when group is undefined", () => {
@@ -629,47 +631,40 @@ describe("group synchronisation", () => {
     expect(disconnect).not.toHaveBeenCalled();
   });
 
-  it("should disconnect previous group and connect new one on change", () => {
+  it("should update group assignment and connect new one on change", () => {
     const chart = createMockChartWithInit();
-
     const [group, setGroup] = createSignal<string | undefined>("group-1");
     const [container, setContainer] = createSignal<HTMLElement | null>(null);
 
     setupChart(container, { group });
-
-    const el = document.createElement("div");
-    setContainer(el);
+    setContainer(document.createElement("div"));
 
     vi.mocked(connect).mockClear();
     vi.mocked(disconnect).mockClear();
 
     setGroup("group-2");
 
-    expect(disconnect).toHaveBeenCalledWith("group-1");
+    expect(disconnect).not.toHaveBeenCalled();
     expect(connect).toHaveBeenCalledWith("group-2");
     expect(chart.group).toBe("group-2");
   });
 
-  it("should disconnect previous group when group becomes undefined", () => {
+  it("should clear group when group becomes undefined", () => {
     const chart = createMockChartWithInit();
-
     const [group, setGroup] = createSignal<string | undefined>("group-1");
     const [container, setContainer] = createSignal<HTMLElement | null>(null);
 
     setupChart(container, { group });
+    setContainer(document.createElement("div"));
 
-    const el = document.createElement("div");
-    setContainer(el);
-
-    // Clear previous calls
     vi.mocked(connect).mockClear();
     vi.mocked(disconnect).mockClear();
 
     setGroup(undefined);
 
-    expect(disconnect).toHaveBeenCalledWith("group-1");
+    expect(disconnect).not.toHaveBeenCalled();
     expect(connect).not.toHaveBeenCalled();
-    expect(chart.group).toBe(""); // note: normalised to ""
+    expect(chart.group).toBe("");
   });
 
   it("should not reconnect when group value does not change", () => {

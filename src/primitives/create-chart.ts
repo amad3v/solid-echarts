@@ -4,9 +4,9 @@ import { createEffect, createSignal, on, onCleanup, untrack } from "solid-js";
 import type { CreateChartOptions, CreateChartResult } from "@type/primitives";
 import { DEFAULT_THEME, toAccessor } from "@utils/common";
 import { debounce } from "@utils/primitives";
-import type { EChartsType } from "echarts/core";
+import type { EChartsInitOpts, EChartsType } from "echarts/core";
 import * as echarts from "echarts/core";
-import { connect, disconnect } from "echarts/core";
+import { connect } from "echarts/core";
 
 /**
  * Core primitive for creating and managing an ECharts instance lifecycle.
@@ -84,11 +84,12 @@ export const createChart = (
   } = opts;
 
   const [instance, setInstance] = createSignal<EChartsType | null>(null);
+  const [prevGroup, setPrevGroup] = createSignal<string | undefined>();
 
   let resizeObserver: ResizeObserver | null = null;
   // Tracks the last successfully connected group id so we can disconnect when it changes.
   // Stored outside effects to avoid extra Solid state.
-  let prevGroup: string | undefined = undefined;
+  // let prevGroup: string | undefined = undefined;
 
   // Core effect
   // Tracked dependencies: container and renderer only.
@@ -117,7 +118,7 @@ export const createChart = (
           width,
           height,
           pointerSize,
-        } as echarts.EChartsInitOpts;
+        } as EChartsInitOpts;
         const chart = echarts.init(element, DEFAULT_THEME, initOptions);
 
         // Apply theme before `setInstance` so the first `createChartEffect` call
@@ -132,9 +133,9 @@ export const createChart = (
         if (initialGroup) {
           chart.group = initialGroup;
           connect(initialGroup);
-          prevGroup = initialGroup;
+          setPrevGroup(initialGroup);
         } else {
-          prevGroup = undefined;
+          setPrevGroup(undefined);
         }
 
         setInstance(chart);
@@ -150,12 +151,11 @@ export const createChart = (
           resizeObserver = null;
 
           if (!chart.isDisposed()) {
-            // Ensure cross-chart sync is not left active after group removal/reinit.
-            if (prevGroup) disconnect(prevGroup);
+            chart.group = "";
             chart.dispose();
           }
 
-          prevGroup = undefined;
+          setPrevGroup(undefined);
           setInstance(null);
         });
       },
@@ -190,16 +190,12 @@ export const createChart = (
       if (!chart || chart.isDisposed()) return;
 
       const nextGroup = groupValue || undefined;
-      if (nextGroup === prevGroup) return;
-
-      // Disconnect prior group before connecting
-      // the new one to keep group sync consistent.
-      if (prevGroup) disconnect(prevGroup);
+      if (nextGroup === prevGroup()) return;
 
       chart.group = nextGroup ?? "";
       if (nextGroup) connect(nextGroup);
 
-      prevGroup = nextGroup;
+      setPrevGroup(nextGroup);
     }),
   );
 
