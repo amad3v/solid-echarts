@@ -94,12 +94,14 @@ export const createChart = (
   // Core effect
   // Tracked dependencies: container and renderer only.
   //
-  // theme is not longer an init argument and does NOT belong here.
-  // Adding it would cause unnecessary dispose/reinit
-  // cycles on every theme change. It gets its own effect below.
+  // theme IS an init argument and is read once via `untrack` at init time.
+  // It does not belong in the tracked dependencies because changing theme
+  // requires a full reinit, the theme effect below handles reactive updates
+  // via `setTheme` for properties that support in-place changes, but palette
+  // colors (the `color` array) are init-time only.
   //
   // Option reapplication after reinit is handled by createChartEffect which
-  // tracks [instance, option] - when `setInstance` fires with the new chart,
+  // tracks [instance, option], when `setInstance` fires with the new chart,
   // that effect wakes immediately and applies the current option.
   // No snapshot needed here.
   createEffect(
@@ -119,13 +121,12 @@ export const createChart = (
           height,
           pointerSize,
         } as EChartsInitOpts;
-        const chart = echarts.init(element, DEFAULT_THEME, initOptions);
 
         // Apply theme before `setInstance` so the first `createChartEffect` call
         // already renders with the correct palette.
         // Untracked - theme effect owns all subsequent updates.
         const initialTheme = untrack(theme);
-        if (initialTheme !== undefined) chart.setTheme(initialTheme);
+        const chart = echarts.init(element, initialTheme ?? DEFAULT_THEME, initOptions);
 
         // Apply group before `setInstance` without tracking.
         // group effect owns all subsequent updates.
@@ -174,6 +175,7 @@ export const createChart = (
       [instance, theme],
       ([chart, themeValue]) => {
         if (!chart || chart.isDisposed()) return;
+
         if (themeValue === undefined) return;
         chart.setTheme(themeValue);
       },
