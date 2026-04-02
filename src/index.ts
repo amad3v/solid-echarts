@@ -1,5 +1,6 @@
 export { SolidEChartProvider } from "@ctx/provider";
 export { useChart } from "@ctx/use-chart";
+export { useConfig } from "@ctx/use-config";
 export { createAction } from "@primitive/create-action";
 export { createChart } from "@primitive/create-chart";
 export { createChartEffect } from "@primitive/create-chart-effect";
