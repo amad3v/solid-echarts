@@ -155,7 +155,7 @@ describe("instance initialisation", () => {
 });
 
 describe("theme", () => {
-  it("should call setTheme synchronously inside the init effect with the initial theme", () => {
+  it("should pass the initial theme to echarts.init", () => {
     const el = document.createElement("div");
     const [container, setContainer] = createSignal<HTMLDivElement | null>(null);
     const chart = createMockInstance();
@@ -163,11 +163,11 @@ describe("theme", () => {
 
     setupChart(container, { theme: "dark" });
     setContainer(el);
-    // container effect: init -> setTheme("dark") -> setInstance
+    // container effect: init(el, "dark") -> setInstance
 
-    expect(chart.setTheme).toHaveBeenCalledWith("dark");
-    expect(chart.dispose).not.toHaveBeenCalled();
     expect(echartsCore.init).toHaveBeenCalledTimes(1);
+    expect(echartsCore.init).toHaveBeenCalledWith(el, "dark", expect.any(Object));
+    expect(chart.dispose).not.toHaveBeenCalled();
   });
 
   it("should call setTheme in place when theme signal changes - no dispose or reinit", () => {

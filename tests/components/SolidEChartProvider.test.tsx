@@ -25,6 +25,7 @@ import {
   createMockChartWithInit,
   createMockChartWithLazySetOption,
   createSequentialMockCharts,
+  getInitThemes,
   STYLE,
 } from "../utils/charts";
 import { spyOnResizeObserver } from "../utils/resize-observer";
@@ -35,7 +36,7 @@ beforeEach(() => {
 
 describe("theme propagation", () => {
   it("should propagate a static theme string to all child charts", () => {
-    const chart = createMockChartWithInit();
+    createMockChartWithInit();
 
     render(() => (
       <SolidEChartProvider theme={DARK_THEME}>
@@ -43,7 +44,7 @@ describe("theme propagation", () => {
       </SolidEChartProvider>
     ));
 
-    expect(vi.mocked(chart.setTheme)).toHaveBeenCalledWith(DARK_THEME);
+    expect(getInitThemes()).toEqual([DARK_THEME]);
   });
 
   it("should propagate a reactive theme signal to all child charts", () => {
@@ -55,7 +56,7 @@ describe("theme propagation", () => {
       </SolidEChartProvider>
     ));
 
-    expect(vi.mocked(chart.setTheme)).toHaveBeenCalledWith(DEFAULT_THEME);
+    expect(getInitThemes()).toEqual([DEFAULT_THEME]);
 
     setTheme(DARK_THEME);
 
@@ -65,7 +66,7 @@ describe("theme propagation", () => {
   });
 
   it("should apply provider theme to multiple child charts", () => {
-    const [chart1, chart2] = createSequentialMockCharts();
+    createSequentialMockCharts();
     render(() => (
       <SolidEChartProvider theme={DARK_THEME}>
         <SolidEChart style={STYLE} />
@@ -73,12 +74,11 @@ describe("theme propagation", () => {
       </SolidEChartProvider>
     ));
 
-    expect(vi.mocked(chart1.setTheme)).toHaveBeenCalledWith(DARK_THEME);
-    expect(vi.mocked(chart2.setTheme)).toHaveBeenCalledWith(DARK_THEME);
+    expect(getInitThemes()).toEqual([DARK_THEME, DARK_THEME]);
   });
 
   it("should allow a per-chart theme prop to override the provider theme", () => {
-    const [chart1, chart2] = createSequentialMockCharts();
+    createSequentialMockCharts();
     render(() => (
       <SolidEChartProvider theme={DARK_THEME}>
         <SolidEChart style={STYLE} /> {/* inherits "dark" */}
@@ -86,8 +86,7 @@ describe("theme propagation", () => {
       </SolidEChartProvider>
     ));
 
-    expect(vi.mocked(chart1.setTheme)).toHaveBeenCalledWith(DARK_THEME);
-    expect(vi.mocked(chart2.setTheme)).toHaveBeenCalledWith(DEFAULT_THEME);
+    expect(getInitThemes()).toEqual([DARK_THEME, DEFAULT_THEME]);
   });
 
   it("should allow a per-chart signal theme to override the provider theme", () => {
@@ -100,12 +99,12 @@ describe("theme propagation", () => {
       </SolidEChartProvider>
     ));
 
-    expect(vi.mocked(chart2.setTheme)).toHaveBeenCalledWith(DEFAULT_THEME);
+    expect(getInitThemes()).toEqual([DARK_THEME, DEFAULT_THEME]);
 
     setChartTheme("custom");
 
     expect(vi.mocked(chart2.setTheme)).toHaveBeenLastCalledWith("custom");
-    expect(vi.mocked(chart1.setTheme)).toHaveBeenLastCalledWith(DARK_THEME); // unaffected
+    expect(vi.mocked(chart1.setTheme)).not.toHaveBeenCalled(); // unaffected
   });
 });
 
@@ -384,7 +383,7 @@ describe("autoResize propagation", () => {
 
 describe("nested providers", () => {
   it("inner provider should override only the props it declares", () => {
-    const [chart1, chart2] = createSequentialMockCharts();
+    createSequentialMockCharts();
     render(() => (
       <SolidEChartProvider theme={DARK_THEME} renderer="svg">
         <SolidEChart style={STYLE} /> {/* dark + svg */}
@@ -395,8 +394,7 @@ describe("nested providers", () => {
       </SolidEChartProvider>
     ));
 
-    expect(vi.mocked(chart1.setTheme)).toHaveBeenCalledWith(DARK_THEME);
-    expect(vi.mocked(chart2.setTheme)).toHaveBeenCalledWith(DEFAULT_THEME);
+    expect(getInitThemes()).toEqual([DARK_THEME, DEFAULT_THEME]);
 
     // Both charts should use "svg" renderer (outer provider)
     const initCalls = vi.mocked(echartsCore.init).mock.calls;
@@ -405,7 +403,7 @@ describe("nested providers", () => {
   });
 
   it("inner provider should not affect siblings outside its subtree", () => {
-    const [chart1, chart2] = createSequentialMockCharts();
+    createSequentialMockCharts();
     render(() => (
       <SolidEChartProvider theme={DARK_THEME}>
         <SolidEChartProvider theme={DEFAULT_THEME}>
@@ -415,12 +413,11 @@ describe("nested providers", () => {
       </SolidEChartProvider>
     ));
 
-    expect(vi.mocked(chart1.setTheme)).toHaveBeenCalledWith(DEFAULT_THEME);
-    expect(vi.mocked(chart2.setTheme)).toHaveBeenCalledWith(DARK_THEME);
+    expect(getInitThemes()).toEqual([DEFAULT_THEME, DARK_THEME]);
   });
 
   it("three-level nesting should resolve the nearest ancestor", () => {
-    const [chart1] = createSequentialMockCharts();
+    createSequentialMockCharts();
     render(() => (
       <SolidEChartProvider theme={DARK_THEME}>
         <SolidEChartProvider theme={DEFAULT_THEME}>
@@ -431,7 +428,7 @@ describe("nested providers", () => {
       </SolidEChartProvider>
     ));
 
-    expect(vi.mocked(chart1.setTheme)).toHaveBeenCalledWith("custom");
+    expect(getInitThemes()).toEqual(["custom"]);
   });
 
   it("a reactive signal in the inner provider should update only that subtree", () => {

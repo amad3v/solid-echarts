@@ -54,6 +54,10 @@ export const createSequentialMockCharts = () => {
   return [chart1, chart2] as const;
 };
 
+// Theme argument of every echarts.init call, in call order.
+// The initial theme is an init argument - setTheme only handles later changes.
+export const getInitThemes = () => vi.mocked(echartsCore.init).mock.calls.map(([, theme]) => theme);
+
 // Extract the last registered wrapper for a given event name from chart.on mock calls.
 // SolidEChart wraps handlers before passing to chart.on - this captures that wrapper.
 export const captureOnHandler = (eventName: string, chart: EChartsType) => {

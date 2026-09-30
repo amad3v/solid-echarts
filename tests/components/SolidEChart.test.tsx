@@ -29,6 +29,7 @@ import {
   createMockChartWithInit,
   createSequentialMockCharts,
   fakeParams,
+  getInitThemes,
   STYLE,
 } from "../utils/charts";
 
@@ -283,11 +284,13 @@ describe("lifecycle callbacks (onInit / onReInit / onDispose)", () => {
 });
 
 describe("theme prop", () => {
-  it("should call setTheme with the provided static theme", () => {
+  it("should pass the provided static theme to echarts.init", () => {
     const chart = createMockChartWithInit();
     render(() => <SolidEChart theme={DARK_THEME} style={STYLE} />);
 
-    expect(vi.mocked(chart.setTheme)).toHaveBeenCalledWith(DARK_THEME);
+    expect(getInitThemes()).toEqual([DARK_THEME]);
+    // init already applied it - no redundant in-place update
+    expect(vi.mocked(chart.setTheme)).not.toHaveBeenCalled();
   });
 
   it("should call setTheme in-place when theme signal changes (no dispose, no reinit)", () => {
@@ -305,11 +308,11 @@ describe("theme prop", () => {
   });
 
   it("should accept an inline object theme", () => {
-    const chart = createMockChartWithInit();
+    createMockChartWithInit();
     const themeObj = { backgroundColor: "#333333" };
     render(() => <SolidEChart theme={themeObj} style={STYLE} />);
 
-    expect(vi.mocked(chart.setTheme)).toHaveBeenCalledWith(themeObj);
+    expect(getInitThemes()).toEqual([themeObj]);
   });
 });
 
