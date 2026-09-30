@@ -23,7 +23,12 @@ import { useChart } from "../../src/context/use-chart";
 import { DARK_THEME, DEFAULT_THEME } from "../../src/helpers/common";
 import { SolidEChart } from "../../src/SolidEChart";
 import type { EChartRenderer } from "../../src/types/common";
-import type { EventParams, RenderedEventParams, SolidEChartEventMap } from "../../src/types/echart";
+import type {
+  EventParams,
+  RenderedEventParams,
+  SolidEChartEventMap,
+  SolidEChartSurfaceEventMap,
+} from "../../src/types/echart";
 import { createMockInstance, createMockZr } from "../mocks/echarts";
 import { MockIntersectionObserver } from "../setup";
 import {
@@ -679,6 +684,34 @@ describe("onSurfaceEvents prop", () => {
     expect(vi.mocked(mockZr2.on)).toHaveBeenCalledWith("click", handler); // re-registered
     expect(vi.mocked(mockZr2.off)).not.toHaveBeenCalled(); // new surface is clean
   });
+
+  it("should register the handlers of a map passed as an accessor", () => {
+    const mockZr = createMockZr();
+    vi.mocked(echartsCore.init).mockReturnValue(createMockInstance({ getZr: vi.fn(() => mockZr) }));
+
+    const handler = vi.fn();
+    const [surfaceEvents] = createSignal<SolidEChartSurfaceEventMap>({ click: handler });
+    render(() => <SolidEChart onSurfaceEvents={surfaceEvents} style={STYLE} />);
+
+    expect(vi.mocked(mockZr.on)).toHaveBeenCalledWith("click", handler);
+  });
+
+  it("should swap the handlers when the accessor returns a new map", () => {
+    const mockZr = createMockZr();
+    vi.mocked(echartsCore.init).mockReturnValue(createMockInstance({ getZr: vi.fn(() => mockZr) }));
+
+    const first = vi.fn();
+    const second = vi.fn();
+    const [surfaceEvents, setSurfaceEvents] = createSignal<SolidEChartSurfaceEventMap>({
+      click: first,
+    });
+    render(() => <SolidEChart onSurfaceEvents={surfaceEvents} style={STYLE} />);
+
+    setSurfaceEvents({ mousemove: second });
+
+    expect(vi.mocked(mockZr.off)).toHaveBeenCalledWith("click", first);
+    expect(vi.mocked(mockZr.on)).toHaveBeenCalledWith("mousemove", second);
+  });
 });
 
 describe("onSurfaceEventsOnce prop", () => {
@@ -721,6 +754,22 @@ describe("onSurfaceEventsOnce prop", () => {
     wrapper?.({} as Event);
 
     expect(vi.mocked(mockZr.off)).toHaveBeenCalledWith("click", wrapper);
+  });
+
+  it("should call the handler of a map passed as an accessor", () => {
+    const mockZr = createMockZr();
+    const chart = createMockInstance({ getZr: vi.fn(() => mockZr) });
+    vi.mocked(echartsCore.init).mockReturnValue(chart);
+
+    const handler = vi.fn();
+    const [surfaceEvents] = createSignal<SolidEChartSurfaceEventMap>({ click: handler });
+    render(() => <SolidEChart onSurfaceEventsOnce={surfaceEvents} style={STYLE} />);
+
+    const onCalls = vi.mocked(mockZr.on).mock.calls as [string, (...args: unknown[]) => void][];
+    const wrapper = onCalls.find(([name]) => name === "click")?.[1];
+    wrapper?.({} as Event);
+
+    expect(handler).toHaveBeenCalledTimes(1);
   });
 });
 

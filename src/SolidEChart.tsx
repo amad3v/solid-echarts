@@ -361,14 +361,16 @@ export const SolidEChart: ParentComponent<SolidEChartProps> = (props) => {
   // Handler signature is (`ElementEvent`), no instance injection, since
   // surface events are low-level and the user can access the instance via
   // `useChart` when needed.
-  const surfaceEventMap = createMemo(() => chartProps.onSurfaceEvents ?? EMPTY_SURFACE_MAP);
+  const surfaceEventMap = createMemo(
+    () => resolveMaybeAccessor(chartProps.onSurfaceEvents) ?? EMPTY_SURFACE_MAP,
+  );
 
   createEffect(
     on([instance, surfaceEventMap], ([chart, sEventMap]) => {
       if (!chart || chart.isDisposed()) return;
 
       const surface = chart.getZr();
-      const entries = Object.entries(sEventMap) as [string, SolidEChartSurfaceHandler][];
+      const entries = Object.entries(sEventMap);
 
       for (const [eventName, handler] of entries) {
         surface.on(eventName, handler);
@@ -383,14 +385,16 @@ export const SolidEChart: ParentComponent<SolidEChartProps> = (props) => {
   // Surface once event attachment
   // Same as `onSurfaceEvents` but each handler self-removes after first fire.
   // Same self-reference closure pattern as `onEventsOnce`.
-  const surfaceOnceEventMap = createMemo(() => chartProps.onSurfaceEventsOnce ?? EMPTY_SURFACE_MAP);
+  const surfaceOnceEventMap = createMemo(
+    () => resolveMaybeAccessor(chartProps.onSurfaceEventsOnce) ?? EMPTY_SURFACE_MAP,
+  );
 
   createEffect(
     on([instance, surfaceOnceEventMap], ([chart, sOnceEventMap]) => {
       if (!chart || chart.isDisposed()) return;
 
       const surface = chart.getZr();
-      const entries = Object.entries(sOnceEventMap) as [string, SolidEChartSurfaceHandler][];
+      const entries = Object.entries(sOnceEventMap);
 
       for (const [eventName, handler] of entries) {
         const wrappedOnce: SolidEChartSurfaceHandler = (event) => {
