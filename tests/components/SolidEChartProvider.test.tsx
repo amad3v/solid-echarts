@@ -322,6 +322,23 @@ describe("updateOptions propagation", () => {
     );
   });
 
+  it("should use a per-chart updateOptions prop instead of the provider updateOptions", () => {
+    const chart = createMockChartWithInit();
+    const [option] = createSignal({ series: [] });
+
+    render(() => (
+      <SolidEChartProvider updateOptions={{ notMerge: true, lazyUpdate: true }}>
+        <SolidEChart option={option} updateOptions={{ silent: true }} style={STYLE} />
+      </SolidEChartProvider>
+    ));
+
+    // The prop replaces the provider value as a whole, like every other config prop
+    expect(vi.mocked(chart.setOption)).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({ notMerge: false, lazyUpdate: false, silent: true }),
+    );
+  });
+
   it("should pick up a provider `updateOptions` change on the next `setOption` call (lazy accessor)", () => {
     // the per-chart component reads `() => updateOptions().notMerge` lazily
     // inside the effect, not snapshotted at mount time. So changing the provider

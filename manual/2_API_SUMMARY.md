@@ -36,14 +36,14 @@ The primary component. All props are optional, but `option` must be an accessor 
 These configure the `setOption` call. Read with `untrack` - changing them alone does **not** trigger
 a re-render.
 
-| Prop            | Type                                      | Default | Notes                                                                           |
-| --------------- | ----------------------------------------- | ------- | ------------------------------------------------------------------------------- |
-| `notMerge`      | `MaybeAccessor<boolean>`                  | `false` |                                                                                 |
-| `replaceMerge`  | `MaybeAccessor<string \| string[]>`       | `[]`    |                                                                                 |
-| `lazyUpdate`    | `MaybeAccessor<boolean>`                  | `false` |                                                                                 |
-| `silent`        | `MaybeAccessor<boolean>`                  | `false` |                                                                                 |
-| `autoMerge`     | `MaybeAccessor<boolean>`                  | `false` | Automatically infers the minimal merge strategy.                                |
-| `updateOptions` | `MaybeAccessor<CreateChartEffectOptions>` | `{}`    | Provider/default merge strategy values merged into `createChartEffect` options. |
+| Prop            | Type                                      | Default | Notes                                                                   |
+| --------------- | ----------------------------------------- | ------- | ----------------------------------------------------------------------- |
+| `notMerge`      | `MaybeAccessor<boolean>`                  | `false` |                                                                         |
+| `replaceMerge`  | `MaybeAccessor<string \| string[]>`       | `[]`    |                                                                         |
+| `lazyUpdate`    | `MaybeAccessor<boolean>`                  | `false` |                                                                         |
+| `silent`        | `MaybeAccessor<boolean>`                  | `false` |                                                                         |
+| `autoMerge`     | `MaybeAccessor<boolean>`                  | `false` | Automatically infers the minimal merge strategy.                        |
+| `updateOptions` | `MaybeAccessor<CreateChartEffectOptions>` | `{}`    | The props above as one object. Replaces the provider's `updateOptions`. |
 
 When `autoMerge: true`, `notMerge` and `replaceMerge` are ignored. The library diffs the previous
 and new option structure and automatically selects the minimal merge strategy. `lazyUpdate` and
@@ -117,7 +117,8 @@ Accepts the shared config props only: `theme`, `renderer`, `locale`, `group`, `d
 
 `updateOptions` provides default merge-strategy values for all charts in the subtree.
 Per-chart `notMerge`, `replaceMerge`, `lazyUpdate`, `silent`, and `autoMerge` values override the
-corresponding field from `updateOptions`.
+corresponding field from `updateOptions`. A per-chart `updateOptions` replaces the provider's object
+as a whole; its fields are not combined with the provider's.
 
 ### `useChart()`
 

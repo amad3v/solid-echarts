@@ -223,12 +223,14 @@ export const SolidEChart: ParentComponent<SolidEChartProps> = (props) => {
   // via `ref` or `useChart`. This is the manual update escape hatch for
   // streaming large datasets or custom render loops.
   //
-  // Merge strategy: per-chart props win over provider updateOptions.
+  // Merge strategy: a per-chart prop (`notMerge`, ...) wins over the same
+  // field in `updateOptions`, which is the per-chart prop when set and the
+  // provider value otherwise.
   // Each param is a lazy accessor. `createChartEffect` reads them with
   // `untrack`, so a change never triggers a `setOption` on its own; the new
   // value is used on the next natural trigger (instance or option change).
   {
-    const updateOptions = configContext.updateOptions;
+    const updateOptions = resolveConfigProp<CreateChartEffectOptions>("updateOptions");
     const resolveUpdateOption =
       <T,>(key: keyof CreateChartEffectOptions, fallback: T): Accessor<T> =>
       () =>

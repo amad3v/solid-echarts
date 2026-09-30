@@ -29,6 +29,7 @@ import type {
   SolidEChartEventMap,
   SolidEChartSurfaceEventMap,
 } from "../../src/types/echart";
+import type { CreateChartEffectOptions } from "../../src/types/primitives";
 import { createMockInstance, createMockZr } from "../mocks/echarts";
 import { MockIntersectionObserver } from "../setup";
 import {
@@ -190,6 +191,56 @@ describe("option prop", () => {
       expect.anything(),
       expect.objectContaining({ notMerge: true }),
     );
+  });
+
+  it("should apply the fields of the updateOptions prop to setOption", () => {
+    const chart = createMockChartWithInit();
+    const [option] = createSignal({ series: [] });
+    render(() => (
+      <SolidEChart
+        option={option}
+        updateOptions={{ notMerge: true, lazyUpdate: true }}
+        style={STYLE}
+      />
+    ));
+
+    expect(vi.mocked(chart.setOption)).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({ notMerge: true, lazyUpdate: true }),
+    );
+  });
+
+  it("should let a merge strategy prop win over the same field in updateOptions", () => {
+    const chart = createMockChartWithInit();
+    const [option] = createSignal({ series: [] });
+    render(() => (
+      <SolidEChart
+        option={option}
+        notMerge={false}
+        updateOptions={{ notMerge: true }}
+        style={STYLE}
+      />
+    ));
+
+    expect(vi.mocked(chart.setOption)).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({ notMerge: false }),
+    );
+  });
+
+  it("should use a changed updateOptions accessor on the next setOption without triggering one", () => {
+    const chart = createMockChartWithInit();
+    const [updateOptions, setUpdateOptions] = createSignal<CreateChartEffectOptions>({
+      notMerge: false,
+    });
+    const [option, setOption] = createSignal<Record<string, unknown>>({ series: [] });
+    render(() => <SolidEChart option={option} updateOptions={updateOptions} style={STYLE} />);
+
+    setUpdateOptions({ notMerge: true });
+    expect(vi.mocked(chart.setOption)).toHaveBeenCalledTimes(1);
+
+    setOption({ series: [{ type: "bar" }] });
+    expect(vi.mocked(chart.setOption).mock.calls[1]?.[1]).toMatchObject({ notMerge: true });
   });
 
   it("[autoMerge] should pass replaceMerge when a series id is removed", () => {
