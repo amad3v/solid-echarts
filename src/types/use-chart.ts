@@ -1,6 +1,6 @@
 import type { EChartsType } from "echarts/core";
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+// oxlint-disable-next-line typescript/no-explicit-any
 type EChartFnApi<T extends (...args: any) => any> = (
   ...args: Parameters<T>
 ) => ReturnType<T> | undefined;

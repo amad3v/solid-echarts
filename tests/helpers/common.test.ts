@@ -121,7 +121,7 @@ describe("toAccessor", () => {
 
       expect(acc()).toBe(1);
 
-      // eslint-disable-next-line no-useless-assignment
+      // oxlint-disable-next-line no-useless-assignment
       value++;
       // still 1 because value was captured at creation
       expect(acc()).toBe(1);

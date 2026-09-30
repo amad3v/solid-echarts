@@ -492,8 +492,8 @@ export type SolidEChartProps = Partial<WithMaybeAccessor<SolidEChartMaybeProps>>
 export type SolidEChartOption = Parameters<EChartsType["setOption"]>[0];
 
 export type SolidEChartOptionOpts = EChartsType["setOption"] extends {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  (option: infer O, opts?: infer Opts): any;
+  // oxlint-disable-next-line typescript/no-explicit-any
+  (option: infer _O, opts?: infer Opts): any;
 }
   ? Opts
   : never;

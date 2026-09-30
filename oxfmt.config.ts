@@ -36,5 +36,5 @@ export default defineConfig({
       "unknown",
     ],
   },
-  ignorePatterns: ["node_modules", "dist", "build", "out", "pnpm-lock.yaml"],
+  ignorePatterns: ["node_modules", "dist", "build", "out", "pnpm-lock.yaml", "*.md"],
 });

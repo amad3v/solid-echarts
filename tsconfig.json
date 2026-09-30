@@ -27,6 +27,6 @@
       "@utils/*": ["./src/helpers/*"]
     }
   },
-  "include": ["src", "tests", "eslint.config.ts"],
+  "include": ["src", "tests"],
   "exclude": ["node_modules", "dist"]
 }
