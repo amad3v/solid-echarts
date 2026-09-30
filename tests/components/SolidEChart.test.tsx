@@ -33,6 +33,7 @@ import {
   getInitThemes,
   STYLE,
 } from "../utils/charts";
+import { spyOnResizeObserver } from "../utils/resize-observer";
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -864,5 +865,126 @@ describe("useChart() inside SolidEChart tree", () => {
     setRenderer("svg");
 
     expect(capturedInstance?.()).toBe(chart2);
+  });
+});
+
+// Call form: `prop={signal()}`. Solid compiles it to a getter on `props`, so
+// the component has to read the prop lazily to stay reactive.
+describe("call-form props (prop={signal()})", () => {
+  it("should call setTheme when a call-form theme changes", () => {
+    const chart = createMockChartWithInit();
+    const [theme, setTheme] = createSignal(DEFAULT_THEME);
+    render(() => <SolidEChart theme={theme()} style={STYLE} />);
+
+    setTheme(DARK_THEME);
+
+    expect(vi.mocked(chart.setTheme)).toHaveBeenCalledTimes(1);
+    expect(vi.mocked(chart.setTheme)).toHaveBeenLastCalledWith(DARK_THEME);
+    expect(echartsCore.init).toHaveBeenCalledTimes(1);
+  });
+
+  it("should not call setTheme when the source signal changes but the theme does not", () => {
+    const chart = createMockChartWithInit();
+    const [settings, setSettings] = createSignal({ theme: DARK_THEME, locale: "EN" });
+    render(() => <SolidEChart theme={settings().theme} style={STYLE} />);
+
+    setSettings({ theme: DARK_THEME, locale: "FR" });
+
+    expect(vi.mocked(chart.setTheme)).not.toHaveBeenCalled();
+  });
+
+  it("should fall back to the default theme when a call-form theme becomes undefined", () => {
+    const chart = createMockChartWithInit();
+    const [theme, setTheme] = createSignal<string | undefined>(DARK_THEME);
+    render(() => <SolidEChart theme={theme()} style={STYLE} />);
+
+    setTheme(undefined);
+
+    expect(vi.mocked(chart.setTheme)).toHaveBeenLastCalledWith(DEFAULT_THEME);
+  });
+
+  it("should dispose and reinit when a call-form renderer changes", () => {
+    const [chart1] = createSequentialMockCharts();
+    const [renderer, setRenderer] = createSignal<EChartRenderer>("canvas");
+    render(() => <SolidEChart renderer={renderer()} style={STYLE} />);
+
+    setRenderer("svg");
+
+    expect(vi.mocked(chart1.dispose)).toHaveBeenCalledTimes(1);
+    expect(echartsCore.init).toHaveBeenCalledTimes(2);
+    expect(vi.mocked(echartsCore.init).mock.calls[1]?.[2]).toMatchObject({ renderer: "svg" });
+  });
+
+  it("should not reinit when the source signal changes but the renderer does not", () => {
+    const chart = createMockChartWithInit();
+    const [settings, setSettings] = createSignal<{ renderer: EChartRenderer; locale: string }>({
+      renderer: "svg",
+      locale: "EN",
+    });
+    render(() => <SolidEChart renderer={settings().renderer} style={STYLE} />);
+
+    setSettings({ renderer: "svg", locale: "FR" });
+
+    expect(echartsCore.init).toHaveBeenCalledTimes(1);
+    expect(vi.mocked(chart.dispose)).not.toHaveBeenCalled();
+  });
+
+  it("should update the group when a call-form group changes", () => {
+    const chart = createMockChartWithInit();
+    const [group, setGroup] = createSignal("a");
+    render(() => <SolidEChart group={group()} style={STYLE} />);
+
+    setGroup("b");
+
+    expect(chart.group).toBe("b");
+    expect(echartsCore.connect).toHaveBeenLastCalledWith("b");
+  });
+
+  it("should detach the ResizeObserver when a call-form autoResize turns false", () => {
+    createMockChartWithInit();
+    const [autoResize, setAutoResize] = createSignal(true);
+    render(() => <SolidEChart autoResize={autoResize()} style={STYLE} />);
+    const disconnectSpy = spyOnResizeObserver("disconnect");
+
+    setAutoResize(false);
+
+    expect(disconnectSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it("should call showLoading and hideLoading when a call-form loading changes", () => {
+    const chart = createMockChartWithInit();
+    const [loading, setLoading] = createSignal(false);
+    render(() => <SolidEChart loading={loading()} style={STYLE} />);
+
+    setLoading(true);
+    expect(vi.mocked(chart.showLoading)).toHaveBeenCalledTimes(1);
+
+    const hideCalls = vi.mocked(chart.hideLoading).mock.calls.length;
+    setLoading(false);
+    expect(vi.mocked(chart.hideLoading)).toHaveBeenCalledTimes(hideCalls + 1);
+  });
+
+  it("should pass a changed call-form loadingOptions to showLoading", () => {
+    const chart = createMockChartWithInit();
+    const [loadingOptions, setLoadingOptions] = createSignal({ text: "one" });
+    render(() => <SolidEChart loading={true} loadingOptions={loadingOptions()} style={STYLE} />);
+
+    const next = { text: "two" };
+    setLoadingOptions(next);
+
+    expect(vi.mocked(chart.showLoading)).toHaveBeenLastCalledWith("default", next);
+  });
+
+  it("should use a changed call-form notMerge on the next setOption without triggering one", () => {
+    const chart = createMockChartWithInit();
+    const [notMerge, setNotMerge] = createSignal(false);
+    const [option, setOption] = createSignal<Record<string, unknown>>({ series: [] });
+    render(() => <SolidEChart option={option} notMerge={notMerge()} style={STYLE} />);
+
+    setNotMerge(true);
+    expect(vi.mocked(chart.setOption)).toHaveBeenCalledTimes(1);
+
+    setOption({ series: [{ type: "bar" }] });
+    expect(vi.mocked(chart.setOption).mock.calls[1]?.[1]).toMatchObject({ notMerge: true });
   });
 });

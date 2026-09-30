@@ -9,7 +9,7 @@ vi.mock("echarts/core", () => ({
   registerTheme: vi.fn(),
 }));
 
-import { createSignal, untrack } from "solid-js";
+import { createSignal } from "solid-js";
 
 import { render } from "@solidjs/testing-library";
 import * as echartsCore from "echarts/core";
@@ -23,7 +23,6 @@ import type { CreateChartEffectOptions } from "../../src/types/primitives";
 import { createMockInstance } from "../mocks/echarts";
 import {
   createMockChartWithInit,
-  createMockChartWithLazySetOption,
   createSequentialMockCharts,
   getInitThemes,
   STYLE,
@@ -299,7 +298,7 @@ describe("updateOptions propagation", () => {
     });
     const [option, setOption] = createSignal<Record<string, unknown>>({ series: [] });
 
-    const chart = createMockChartWithLazySetOption(() => untrack(updateOpts));
+    const chart = createMockChartWithInit();
 
     render(() => (
       <SolidEChartProvider updateOptions={updateOpts}>

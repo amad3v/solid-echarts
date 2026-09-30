@@ -3,7 +3,6 @@ import * as echartsCore from "echarts/core";
 import { vi } from "vitest";
 
 import type { EventParams } from "../../src/types/echart";
-import type { CreateChartEffectOptions } from "../../src/types/primitives";
 import { createMockInstance } from "../mocks/echarts";
 
 export const STYLE = { width: "400px", height: "300px" } as const;
@@ -24,25 +23,6 @@ export const fakeParams: EventParams = {
 
 export const createMockChartWithInit = (): EChartsType => {
   const chart = createMockInstance();
-  vi.mocked(echartsCore.init).mockReturnValue(chart);
-  return chart;
-};
-
-export const createMockChartWithLazySetOption = (
-  updateOptions: () => CreateChartEffectOptions,
-): EChartsType => {
-  const chart = createMockInstance();
-
-  // Override setOption to evaluate updateOptions() at call-time
-  const originalSetOption = chart.setOption;
-  chart.setOption = vi.fn((option, opts) => {
-    // Merge in current updateOptions value lazily
-    if (typeof opts === "object" && "notMerge" in opts) {
-      opts.notMerge = updateOptions().notMerge;
-    }
-    originalSetOption(option, opts);
-  });
-
   vi.mocked(echartsCore.init).mockReturnValue(chart);
   return chart;
 };

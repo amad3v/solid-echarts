@@ -27,7 +27,7 @@ import type {
   SolidEChartSurfaceHandler,
 } from "@type/echart";
 import type { CreateChartEffectOptions, CreateChartOptions } from "@type/primitives";
-import { resolveMaybeAccessor, toAccessor } from "@utils/common";
+import { resolveMaybeAccessor } from "@utils/common";
 
 // Stable empty-option constants.
 // Inline `?? {}` creates a new object reference on every evaluation.
@@ -152,33 +152,37 @@ export const SolidEChart: ParentComponent<SolidEChartProps> = (props) => {
   const [containerProps, chartProps, nativeProps] = splitProps(props, CONTAINER_PROPS, CHART_PROPS);
 
   // Inherit shared defaults from the nearest SolidEChartProvider.
-  // Each resolver is a lazy accessor that reads props through SolidJS's
-  // reactive proxy at call time, not at construction time. This ensures
-  // all three usage patterns stay reactive:
-  //   theme="dark"           : static string
-  //   theme={currentTheme()} : signal value read through reactive proxy
-  //   theme={currentTheme}   : accessor called at resolution time
   const configContext = useConfig();
 
   // Signal that bridges the div ref to createChart.
   // Becomes non-null when the container div mounts, triggering chart init.
   const [containerElement, setContainerElement] = createSignal<HTMLDivElement | null>(null);
 
-  const resolveConfigProp = <T,>(key: keyof ChartConfigContextValue): Accessor<T> =>
-    (chartProps[key] === undefined
-      ? configContext[key]
-      : toAccessor(chartProps[key])) as Accessor<T>;
-
   // Build merged config: context value is the fallback,
   // component prop wins when explicitly set.
-  // Each resolver is a lazy accessor , reads props reactively at call time.
-  const resolvedTheme = resolveConfigProp<string | object | undefined>("theme");
-  const resolvedRenderer = resolveConfigProp<EChartRenderer>("renderer");
+  // Each resolver is a lazy accessor that reads the prop through SolidJS's
+  // reactive proxy at call time, not at construction time. This keeps all
+  // three usage patterns reactive:
+  //   theme="dark"           : static string
+  //   theme={currentTheme()} : signal value read through reactive proxy
+  //   theme={currentTheme}   : accessor called at resolution time
+  const resolveConfigProp =
+    <T,>(key: keyof ChartConfigContextValue): Accessor<T> =>
+    () => {
+      const value = chartProps[key];
+      return (value === undefined ? configContext[key]() : resolveMaybeAccessor(value)) as T;
+    };
+
+  // The four props `createChart` tracks are memoised: `theme={settings().theme}`
+  // re-evaluates whenever `settings` changes, and without a memo an unchanged
+  // value would still trigger `setTheme` or a full renderer reinit.
+  const resolvedTheme = createMemo(resolveConfigProp<string | object | undefined>("theme"));
+  const resolvedRenderer = createMemo(resolveConfigProp<EChartRenderer>("renderer"));
+  const resolvedGroup = createMemo(resolveConfigProp<string | undefined>("group"));
+  const resolvedAutoResize = createMemo(resolveConfigProp<boolean>("autoResize"));
   const resolvedLocale = resolveConfigProp<string>("locale");
-  const resolvedGroup = resolveConfigProp<string | undefined>("group");
   const resolvedDevicePixelRatio = resolveConfigProp<number>("devicePixelRatio");
   const resolvedUseDirtyRect = resolveConfigProp<boolean>("useDirtyRect");
-  const resolvedAutoResize = resolveConfigProp<boolean>("autoResize");
   const resolvedUseCoarsePointer = resolveConfigProp<boolean>("useCoarsePointer");
   const resolvedSSR = resolveConfigProp<boolean>("ssr");
   const resolvedPointerSize = resolveConfigProp<number>("pointerSize");
@@ -214,30 +218,36 @@ export const SolidEChart: ParentComponent<SolidEChartProps> = (props) => {
   // streaming large datasets or custom render loops.
   //
   // Merge strategy: per-chart props win over provider updateOptions.
-  // Provider values are read once at mount, this is correct because
-  // `createChartEffect` reads merge strategy params with `untrack`, so
-  // changes to them never trigger re-runs regardless. The value is only
-  // read on the next natural trigger (instance or option change).
+  // Each param is a lazy accessor. `createChartEffect` reads them with
+  // `untrack`, so a change never triggers a `setOption` on its own; the new
+  // value is used on the next natural trigger (instance or option change).
   {
     const updateOptions = configContext.updateOptions;
-    const options = {
-      autoMerge: chartProps.autoMerge ?? updateOptions().autoMerge,
-      notMerge: chartProps.notMerge ?? updateOptions().notMerge,
-      replaceMerge: chartProps.replaceMerge ?? updateOptions().replaceMerge,
-      lazyUpdate: chartProps.lazyUpdate ?? updateOptions().lazyUpdate,
-      silent: chartProps.silent ?? updateOptions().silent,
-    } as CreateChartEffectOptions;
+    const resolveUpdateOption =
+      <T,>(key: keyof CreateChartEffectOptions, fallback: T): Accessor<T> =>
+      () =>
+        (resolveMaybeAccessor<unknown>(chartProps[key]) ??
+          resolveMaybeAccessor<unknown>(updateOptions()[key]) ??
+          fallback) as T;
 
-    createChartEffect(instance, () => chartProps.option?.(), options);
+    createChartEffect(instance, () => chartProps.option?.(), {
+      autoMerge: resolveUpdateOption("autoMerge", false),
+      notMerge: resolveUpdateOption("notMerge", false),
+      replaceMerge: resolveUpdateOption<string | string[]>("replaceMerge", []),
+      lazyUpdate: resolveUpdateOption("lazyUpdate", false),
+      silent: resolveUpdateOption("silent", false),
+    });
   }
 
   // Loading state
-  // Both accessors are lazy lambdas that defer evaluation to call time.
-  // Resolving them eagerly (e.g. `toAccessor(chartProps.loading ?? false)`)
+  // Both props are read inside a memo, so they are resolved at call time.
+  // Reading them eagerly (e.g. `toAccessor(chartProps.loading ?? false)`)
   // would snapshot the value at construction and freeze it, the `on` array
   // would never see signal updates.
-  const resolvedLoading = toAccessor(chartProps.loading ?? false);
-  const resolvedLoadingOptions = toAccessor(chartProps.loadingOptions ?? EMPTY_LOADING_OPTIONS);
+  const resolvedLoading = createMemo(() => resolveMaybeAccessor(chartProps.loading) ?? false);
+  const resolvedLoadingOptions = createMemo(
+    () => resolveMaybeAccessor(chartProps.loadingOptions) ?? EMPTY_LOADING_OPTIONS,
+  );
 
   createEffect(
     on(
