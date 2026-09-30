@@ -223,11 +223,54 @@ export type TimelinePlayChangePayload = SimplePayload<
   }
 >;
 
+/**
+ * Pan and zoom fields shared by ECharts roam actions.
+ *
+ * @remarks
+ *
+ * Both are relative to the current view. A payload with neither a pan
+ * (`dx` + `dy`) nor a zoom (`zoom` + `originX` + `originY`) changes nothing.
+ */
+export type RoamDelta = {
+  /** Horizontal pan distance in pixels. Applied only together with `dy`. */
+  dx?: number;
+  /** Vertical pan distance in pixels. Applied only together with `dx`. */
+  dy?: number;
+  /**
+   * Zoom factor relative to the current zoom, not an absolute zoom level.
+   * Requires `originX` and `originY`.
+   */
+  zoom?: number;
+  /** Horizontal pixel coordinate the zoom is anchored to. */
+  originX?: number;
+  /** Vertical pixel coordinate the zoom is anchored to. */
+  originY?: number;
+};
+
+/**
+ * Payload of the `geoRoam` action.
+ *
+ * @remarks
+ *
+ * Targets geo components when any of `geoId` / `geoIndex` / `geoName` is set.
+ * Otherwise targets map series, narrowed by `seriesId` / `seriesIndex` /
+ * `seriesName`.
+ */
 export type GeoRoamPayload = SimplePayload<
   "geoRoam",
-  {
-    /** Targets a specific geo component by name. */
-    name?: string;
+  RoamDelta & {
+    /** Target geo component by its `id`. */
+    geoId?: string | string[];
+    /** Target geo component by index in `option.geo`. */
+    geoIndex?: number | number[];
+    /** Target geo component by its `name`. */
+    geoName?: string | string[];
+    /** Target map series by its `id`. */
+    seriesId?: string | string[];
+    /** Target map series by index in `option.series`. */
+    seriesIndex?: number | number[];
+    /** Target map series by its `name`. */
+    seriesName?: string | string[];
   }
 >;
 

@@ -304,13 +304,19 @@ export const seActions = {
   timelinePlayChange: actionFactory("timelinePlayChange"),
 
   /**
-   * Triggers a geo component roam (pan/zoom) action.
+   * Pans or zooms a geo component or a map series, relative to its current view.
    *
-   * @param payload - Optional. `name` targets a specific geo component by name.
+   * @param payload - `dx` + `dy` pan by pixels, `zoom` + `originX` + `originY`
+   * zoom around a pixel. `geoId` / `geoIndex` / `geoName` target geo components,
+   * otherwise map series are targeted.
    *
    * @example
    * ```ts
-   * dispatch(seActions.geoRoam());
+   * // Pan the first geo component
+   * dispatch(seActions.geoRoam({ geoIndex: 0, dx: 40, dy: 0 }));
+   *
+   * // Zoom in 2x around a pixel
+   * dispatch(seActions.geoRoam({ geoIndex: 0, zoom: 2, originX: 200, originY: 150 }));
    * ```
    */
   geoRoam: actionFactory("geoRoam"),

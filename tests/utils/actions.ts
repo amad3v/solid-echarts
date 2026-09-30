@@ -26,7 +26,7 @@ const cases: [ActionKind, PayloadTest][] = [
   ["brush", { areas: [] }],
   ["timelineChange", { currentIndex: 1 }],
   ["timelinePlayChange", { playState: true }],
-  ["geoRoam", { center: [0, 0], zoom: 1 }],
+  ["geoRoam", { geoIndex: 0, dx: 40, dy: 10 }],
   ["focusNodeAdjacency", { seriesIndex: 0, dataIndex: 1 }],
   ["unfocusNodeAdjacency", { seriesIndex: 0, dataIndex: 1 }],
 ];

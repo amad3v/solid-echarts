@@ -15,7 +15,7 @@ import { createEffect, createSignal } from "solid-js";
 import { render } from "@solidjs/testing-library";
 import type { EChartsType } from "echarts/core";
 import * as echartsCore from "echarts/core";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, expectTypeOf, it, vi } from "vitest";
 
 import type { EChartsOption } from "../../src";
 import { seActions } from "../../src/actions";
@@ -23,6 +23,7 @@ import { useChart } from "../../src/context/use-chart";
 import { DARK_THEME, DEFAULT_THEME } from "../../src/helpers/common";
 import { SolidEChart } from "../../src/SolidEChart";
 import type { EChartRenderer } from "../../src/types/common";
+import type { EventParams, RenderedEventParams, SolidEChartEventMap } from "../../src/types/echart";
 import { createMockInstance, createMockZr } from "../mocks/echarts";
 import {
   captureOnHandler,
@@ -457,6 +458,30 @@ describe("onEvents prop", () => {
 
     expect(handler).toHaveBeenCalledTimes(1);
     expect(handler).toHaveBeenCalledWith(fakeParams, chart);
+  });
+
+  it("should forward undefined params for the finished event", () => {
+    const chart = createMockChartWithInit();
+    const handler = vi.fn();
+    render(() => <SolidEChart onEvents={{ finished: handler }} style={STYLE} />);
+
+    const wrapper = captureOnHandler("finished", chart);
+    wrapper?.();
+
+    expect(handler).toHaveBeenCalledTimes(1);
+    expect(handler).toHaveBeenCalledWith(undefined, chart);
+  });
+
+  it("should type handler params per event name", () => {
+    expectTypeOf<SolidEChartEventMap["click"]>().toEqualTypeOf<
+      ((params: EventParams, instance: EChartsType) => void) | undefined
+    >();
+    expectTypeOf<SolidEChartEventMap["rendered"]>().toEqualTypeOf<
+      ((params: RenderedEventParams, instance: EChartsType) => void) | undefined
+    >();
+    expectTypeOf<SolidEChartEventMap["finished"]>().toEqualTypeOf<
+      ((params: undefined, instance: EChartsType) => void) | undefined
+    >();
   });
 
   it("should register multiple handlers for different events", () => {

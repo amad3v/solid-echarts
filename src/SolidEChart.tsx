@@ -19,7 +19,6 @@ import type { ChartConfigContextValue } from "@type/context";
 import type {
   EchartsRef,
   EventHandler,
-  EventParams,
   SolidEChartEventHandler,
   SolidEChartEventMap,
   SolidEChartEventName,
@@ -39,6 +38,10 @@ import { resolveMaybeAccessor, toAccessor } from "@utils/common";
 const EMPTY_LOADING_OPTIONS: Record<string, never> = {};
 const EMPTY_EVENT_MAP: SolidEChartEventMap = {};
 const EMPTY_SURFACE_MAP: SolidEChartSurfaceEventMap = {};
+
+// The params type depends on the event name (see `SolidEChartEventMap`).
+// The wrappers forward whatever ECharts passes, so they are typed as `unknown`.
+type ForwardingEventHandler = SolidEChartEventHandler<unknown>;
 
 const CONTAINER_PROPS = ["children"] as const;
 const CHART_PROPS = [
@@ -266,14 +269,14 @@ export const SolidEChart: ParentComponent<SolidEChartProps> = (props) => {
     on([instance, eventMap], ([chart, evtMap]) => {
       if (!chart || chart.isDisposed()) return;
 
-      const entries = Object.entries(evtMap) as [SolidEChartEventName, SolidEChartEventHandler][];
+      const entries = Object.entries(evtMap) as [SolidEChartEventName, ForwardingEventHandler][];
 
       for (const [eventName, handler] of entries) {
-        const wrappedHandler = (params: EventParams): void => {
+        const wrappedHandler: EventHandler = (params) => {
           handler(params, chart);
         };
 
-        chart.on(eventName, wrappedHandler as EventHandler);
+        chart.on(eventName, wrappedHandler);
 
         onCleanup(() => chart.off(eventName, wrappedHandler));
       }
@@ -303,20 +306,17 @@ export const SolidEChart: ParentComponent<SolidEChartProps> = (props) => {
   const onceEventMap = createMemo(
     () => resolveMaybeAccessor(chartProps.onEventsOnce) ?? EMPTY_EVENT_MAP,
   );
-  const firedHandlers = new WeakSet<SolidEChartEventHandler>();
+  const firedHandlers = new WeakSet<ForwardingEventHandler>();
   createEffect(
     on([instance, onceEventMap], ([chart, oEventMap]) => {
       if (!chart || chart.isDisposed()) return;
 
-      const entries = Object.entries(oEventMap) as [
-        SolidEChartEventName,
-        SolidEChartEventHandler,
-      ][];
+      const entries = Object.entries(oEventMap) as [SolidEChartEventName, ForwardingEventHandler][];
 
       for (const [eventName, handler] of entries) {
         if (firedHandlers.has(handler)) continue; // already fired, skip
 
-        const wrappedOnce = (params: EventParams): void => {
+        const wrappedOnce: EventHandler = (params) => {
           if (firedHandlers.has(handler)) return; // double-guard
           firedHandlers.add(handler);
 
@@ -324,7 +324,7 @@ export const SolidEChart: ParentComponent<SolidEChartProps> = (props) => {
           chart.off(eventName, wrappedOnce);
         };
 
-        chart.on(eventName, wrappedOnce as EventHandler);
+        chart.on(eventName, wrappedOnce);
 
         onCleanup(() => chart.off(eventName, wrappedOnce));
       }

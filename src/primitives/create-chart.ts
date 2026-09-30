@@ -95,10 +95,9 @@ export const createChart = (
   // Tracked dependencies: container and renderer only.
   //
   // theme IS an init argument and is read once via `untrack` at init time.
-  // It does not belong in the tracked dependencies because changing theme
-  // requires a full reinit, the theme effect below handles reactive updates
-  // via `setTheme` for properties that support in-place changes, but palette
-  // colors (the `color` array) are init-time only.
+  // It does not belong in the tracked dependencies: later changes are applied
+  // in place by the theme effect below via `setTheme`, palette included, so a
+  // theme change never needs a reinit.
   //
   // Option reapplication after reinit is handled by createChartEffect which
   // tracks [instance, option], when `setInstance` fires with the new chart,

@@ -23,7 +23,12 @@ import type { CreateChartEffectOptions } from "./primitives";
  * `legendunselected`, `legendscroll`, `datazoom`, `datarangeselected`,
  * `timelinechanged`, `timelineplaychanged`, `restore`, `rendered`,
  * `finished`, `brush`, `brushEnd`, `brushselected`, `globalcursortaken`,
- * `axisareaselected`.
+ * `axisareaselected`, `showtip`, `hidetip`, `updateaxispointer`,
+ * `focusnodeadjacency`, `unfocusnodeadjacency`, `dragnode`,
+ * `treeexpandandcollapse`, `changeaxisorder`.
+ *
+ * `rendered` and `finished` do not carry {@link EventParams}, see
+ * {@link SolidEChartEventMap}.
  *
  * Pass as keys of the `onEvents` prop on {@link SolidEChart}:
  * ```tsx
@@ -80,6 +85,14 @@ export type SolidEChartEventName =
   | "brushEnd"
   | "brushselected"
   | "globalcursortaken"
+  | "showtip"
+  | "hidetip"
+  | "updateaxispointer"
+  | "focusnodeadjacency"
+  | "unfocusnodeadjacency"
+  | "dragnode"
+  | "treeexpandandcollapse"
+  | "changeaxisorder"
   | "finished"
   | "downplay"
   | "rendered";
@@ -174,9 +187,29 @@ export type EventParams = {
 };
 
 /**
+ * Parameters passed to `rendered` event handlers.
+ */
+export type RenderedEventParams = {
+  /** Time spent rendering the frame, in milliseconds. */
+  elapsedTime: number;
+};
+
+/**
+ * Events whose first handler argument is not {@link EventParams}.
+ * `finished` is triggered without any argument.
+ *
+ * @internal
+ */
+type LifecycleEventParamsMap = {
+  rendered: RenderedEventParams;
+  finished: undefined;
+};
+
+/**
  * Event handler for ECharts events. Receives the event params and the live
  * chart instance so actions can be dispatched without a separate ref.
  *
+ * @typeParam P - Type of the event params. Defaults to {@link EventParams}.
  * @param params - Event data. See {@link EventParams}.
  * @param instance - The live `EChartsType` instance that fired the event.
  *
@@ -184,13 +217,20 @@ export type EventParams = {
  *
  * @internal
  */
-export type SolidEChartEventHandler = (params: EventParams, instance: EChartsType) => void;
+export type SolidEChartEventHandler<P = EventParams> = (params: P, instance: EChartsType) => void;
 
 /**
  * Map of ECharts event names to their handlers. All entries are optional,
  * only the events you care about need to be provided.
+ *
+ * Handlers receive {@link EventParams}, except `rendered`
+ * ({@link RenderedEventParams}) and `finished` (`undefined`).
  */
-export type SolidEChartEventMap = Partial<Record<SolidEChartEventName, SolidEChartEventHandler>>;
+export type SolidEChartEventMap = {
+  [K in SolidEChartEventName]?: SolidEChartEventHandler<
+    K extends keyof LifecycleEventParamsMap ? LifecycleEventParamsMap[K] : EventParams
+  >;
+};
 
 /**
  * Event handler for chart surface events - events that fire anywhere on the
