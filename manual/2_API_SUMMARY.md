@@ -13,7 +13,7 @@ The primary component. All props are optional, but `option` must be an accessor 
 | Prop               | Type                               | Default                   | Notes                                                                                                                            |
 | ------------------ | ---------------------------------- | ------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
 | `option`           | `Accessor<SolidEChartOption>`      | -                         | Reactive. Drives `setOption`. Omit for manual mode.                                                                              |
-| `theme`            | `MaybeAccessor<string \| object>`  | `'default'`               | Calls `setTheme()` in place.                                                                                                     |
+| `theme`            | `MaybeAccessor<string \| object>`  | `'default'`               | Calls `setTheme()` in place, then applies the current `option` again.                                                            |
 | `renderer`         | `MaybeAccessor<'canvas' \| 'svg'>` | `'canvas'`                | Triggers full reinit on change.                                                                                                  |
 | `locale`           | `MaybeAccessor<string>`            | `'EN'`                    | **Static.**                                                                                                                      |
 | `group`            | `MaybeAccessor<string>`            | -                         | Calls `echarts.connect()` in place.                                                                                              |
@@ -164,7 +164,7 @@ createChartEffect(instance, option);
 | Parameter               | Type                                         | Notes                                                                |
 | ----------------------- | -------------------------------------------- | -------------------------------------------------------------------- |
 | `container`             | `Accessor<HTMLElement \| null \| undefined>` | Instance created when non-null, disposed on null.                    |
-| `opts.theme`            | `MaybeAccessor<EChartTheme>`                 | Reactive. Updated via `setTheme()`.                                  |
+| `opts.theme`            | `MaybeAccessor<EChartTheme>`                 | Reactive. Updated via `setTheme()`; see `createChartEffect`.         |
 | `opts.renderer`         | `MaybeAccessor<'canvas' \| 'svg'>`           | Reactive. Triggers reinit on change.                                 |
 | `opts.group`            | `MaybeAccessor<string>`                      | Reactive. Updated via `chart.group` + `connect()`.                   |
 | `opts.autoResize`       | `MaybeAccessor<boolean>`                     | Reactive. Toggles `ResizeObserver`.                                  |
@@ -189,7 +189,9 @@ Must be called inside a reactive root (`createRoot`, component body). Cleanup is
 ### `createChartEffect(instance, option, opts?)`
 
 Bridges a reactive option accessor to `chart.setOption`. Fires immediately on mount (`defer: false`)
-and re-fires when `instance` or `option` changes.
+and re-fires when `instance` or `option` changes, and after every theme change of an instance from
+`createChart`: ECharts' `setTheme` rebuilds the chart from the first option set on the instance, so
+the latest option is applied again (with `notMerge: true` under `autoMerge`).
 
 ```ts
 createChartEffect(instance, option, { notMerge: false });

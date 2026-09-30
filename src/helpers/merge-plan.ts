@@ -19,10 +19,13 @@
  * - Remove a top-level key like `legend` -> it stays rendered
  * - Replace series by position -> old items at removed positions persist
  *
- * Without this module, `notMerge: true` must passed manually (full
- * replacement, loses animations) or `replaceMerge: ['series']` (targeted,
- * but requires knowing which keys changed), both require deep ECharts
- * knowledge to apply correctly.
+ * Without this module, `notMerge: true` must be passed manually (full
+ * replacement: every component absent from the new option is dropped) or
+ * `replaceMerge: ['series']` (targeted, but requires knowing which keys
+ * changed), both require deep ECharts knowledge to apply correctly.
+ * `notMerge: true` keeps update animations: ECharts reuses the views of
+ * matching components (same id, or same type, name and index) and
+ * transitions them.
  *
  * **What is intentionally excluded**
  *

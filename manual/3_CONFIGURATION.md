@@ -18,11 +18,10 @@ the correct `setOption` merge strategy by diffing the previous and new option sh
 5. Array items removed (by tracked `id` or anonymous count) -> `replaceMerge: [key]`
 6. No removals detected -> `notMerge: false`
 
-**Constraint:** `autoMerge` calls `setOption` in merge mode (`notMerge: false`) after `setTheme`.
-Calling `setOption` in merge mode multiple times before `setTheme` causes ECharts to discard
-intermediate options - only the last survives the theme change. Mitigate by using `notMerge: true`
-on all prior `setOption` calls when `setTheme` changes are anticipated, or by ensuring every option
-object is complete.
+**Theme switches:** ECharts' `setTheme` rebuilds the chart from the first option set on the
+instance, not from the current one. The library applies the latest option again right after every
+`setTheme`, so a theme switch keeps the current option in every merge mode. With `autoMerge`, that
+call uses `notMerge: true`, since the rebuilt chart no longer matches the previous option shape.
 
 ---
 
@@ -55,6 +54,11 @@ imperatively via `ref` or `useChart()`:
 
 This is the correct approach for streaming large datasets (`chart.appendData`) or custom render
 loops where reactive overhead is undesirable.
+
+A theme change still calls `setTheme`, which makes ECharts rebuild the chart from the first option
+set on the instance. Without an `option` prop there is no option for the library to apply again, so
+set the current option yourself after a theme change (or pass `notMerge: true` to every `setOption`
+call, which makes ECharts keep the last option as the one it rebuilds from).
 
 ---
 
