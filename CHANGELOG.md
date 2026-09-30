@@ -5,6 +5,19 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.1] - 2026-09-30
+
+### Fixed
+
+- A theme change showed the first option ever set on the chart instead of the current one: ECharts'
+  `setTheme` rebuilds the chart from that first option. The current option is now applied again
+  after every `setTheme`, also when the theme and the option change at the same time. Under
+  `autoMerge` that call uses `notMerge: true`.
+- A theme accessor that re-ran with an unchanged value called `setTheme` again.
+- Documentation: the manual's note on theme switches under `autoMerge` said the last option
+  survives a theme change (it is the first), and a code comment said `notMerge: true` loses
+  animations (ECharts keeps them). The manual now also covers theme changes in manual mode.
+
 ## [1.1.0] - 2026-09-30
 
 ### Added
@@ -76,6 +89,7 @@ Version 1.0.1 was not published.
 
 Initial release.
 
+[1.1.1]: https://codeberg.org/amad3v/solid-echarts/compare/v1.1.0...v1.1.1
 [1.1.0]: https://codeberg.org/amad3v/solid-echarts/compare/v1.0.3...v1.1.0
 [1.0.3]: https://codeberg.org/amad3v/solid-echarts/compare/v1.0.2...v1.0.3
 [1.0.2]: https://codeberg.org/amad3v/solid-echarts/compare/v1.0.0...v1.0.2

@@ -1,6 +1,6 @@
 {
   "name": "@amad3v/solid-echarts",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "A SolidJS wrapper for Apache ECharts.",
   "homepage": "https://codeberg.org/amad3v/solid-echarts",
   "bugs": {
