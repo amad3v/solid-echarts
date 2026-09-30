@@ -78,6 +78,21 @@ is created only once its container first enters the viewport:
   parent is shown.
 - Where `IntersectionObserver` is not available, the chart is created immediately.
 
+**Several signal writes, one render.** Each change of the `option` accessor calls `setOption`, and
+ECharts renders synchronously by default. Writing three signals that feed one option therefore
+renders three times. Group the writes with `batch`:
+
+```ts
+batch(() => {
+  setData(nextData);
+  setTitle(nextTitle);
+});
+```
+
+Alternatively set `lazyUpdate` (per chart, or through the provider's `updateOptions`): ECharts then
+merges each option immediately and renders once on the next frame. With `lazyUpdate`, values read
+right after a change (`convertToPixel`, `getDataURL`, ...) still reflect the previous render.
+
 ---
 
 ### SSR
