@@ -110,7 +110,7 @@ export const createChartEffect = (
           // When instance is a new chart (reinit), `lastSignature` was reset
           // to null on the previous cleanup, `optionMergePlan` treats null as first
           // render and returns `notMerge: false`, for a fresh instance with no prior state.
-          const plan = optionMergePlan(lastSignature, currentOption as Record<string, unknown>);
+          const plan = optionMergePlan(lastSignature, currentOption);
           const opts = {
             notMerge: plan.notMerge,
             replaceMerge: plan.replaceMerge.length > 0 ? plan.replaceMerge : undefined,
