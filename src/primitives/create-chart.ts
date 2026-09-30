@@ -165,14 +165,16 @@ export const createChart = (
 
   // Theme effect
   // `setTheme` updates in place, no reinit required.
-  // `defer: true`: the core effect already applies the initial theme synchronously
-  // before `setInstance` fires. Running again immediately would be a redundant
-  // no-op at best, and could cause a palette flash if setOption fires between
-  // the two theme applications.
+  // Tracks `theme` only. Every instance is created with the current theme by
+  // the core effect, so a new instance (late container, renderer reinit) needs
+  // no `setTheme`; `instance` is read untracked for that reason.
+  // `defer: true` skips the initial value, which `init` has applied or will apply.
+  // A change made while there is no instance is picked up by the next `init`.
   createEffect(
     on(
-      [instance, theme],
-      ([chart, themeValue]) => {
+      theme,
+      (themeValue) => {
+        const chart = instance();
         if (!chart || chart.isDisposed()) return;
 
         if (themeValue === undefined) return;

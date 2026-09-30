@@ -35,11 +35,14 @@ afterEach(() => {
 
 // createChart has a two-level reactive chain:
 //   Level 1: container signal -> container effect -> echarts.init -> setInstance
-//   Level 2: instance signal -> theme/group/autoResize effects
+//   Level 2: instance signal -> group/autoResize effects
+//
+// The theme effect is outside that chain: it tracks the theme only, since
+// every instance is created with the current theme.
 //
 // flushEffects() = two nextTick()s covers both levels.
 // Use nextTick() alone when asserting Level 1 outcomes (init called, instance set).
-// Use flushEffects() when asserting Level 2 outcomes (setTheme, connect, ResizeObserver).
+// Use flushEffects() when asserting Level 2 outcomes (connect, ResizeObserver).
 const setupChart = (
   container: Accessor<HTMLElement | null | undefined>,
   opts?: CreateChartOptions,
@@ -179,7 +182,7 @@ describe("theme", () => {
 
     setupChart(container, { theme });
     setContainer(el);
-    // level 1 (init) + level 2 (theme effect triggered by setInstance)
+    // init applies the initial theme, the theme effect only handles the change below
 
     setTheme(DARK_THEME);
 
@@ -199,6 +202,68 @@ describe("theme", () => {
     setContainer(el);
 
     expect(chart.setTheme).not.toHaveBeenCalled();
+  });
+
+  it("should not call setTheme when the container arrives after creation", () => {
+    const el = document.createElement("div");
+    const [container, setContainer] = createSignal<HTMLDivElement | null>(null);
+    const chart = createMockInstance();
+    vi.mocked(echartsCore.init).mockReturnValue(chart);
+
+    setupChart(container, { theme: DARK_THEME });
+    setContainer(el);
+
+    // init already applied the theme
+    expect(echartsCore.init).toHaveBeenCalledWith(el, DARK_THEME, expect.any(Object));
+    expect(chart.setTheme).not.toHaveBeenCalled();
+  });
+
+  it("should call setTheme once per theme change", () => {
+    const el = document.createElement("div");
+    const [container, setContainer] = createSignal<HTMLDivElement | null>(null);
+    const [theme, setTheme] = createSignal<string>(DEFAULT_THEME);
+    const chart = createMockInstance();
+    vi.mocked(echartsCore.init).mockReturnValue(chart);
+
+    setupChart(container, { theme });
+    setContainer(el);
+    setTheme(DARK_THEME);
+
+    expect(chart.setTheme).toHaveBeenCalledTimes(1);
+    expect(chart.setTheme).toHaveBeenCalledWith(DARK_THEME);
+  });
+
+  it("should init with the latest theme when it changes before the container arrives", () => {
+    const el = document.createElement("div");
+    const [container, setContainer] = createSignal<HTMLDivElement | null>(null);
+    const [theme, setTheme] = createSignal<string>(DEFAULT_THEME);
+    const chart = createMockInstance();
+    vi.mocked(echartsCore.init).mockReturnValue(chart);
+
+    setupChart(container, { theme });
+    setTheme(DARK_THEME);
+    setContainer(el);
+
+    expect(echartsCore.init).toHaveBeenCalledWith(el, DARK_THEME, expect.any(Object));
+    expect(chart.setTheme).not.toHaveBeenCalled();
+  });
+
+  it("should apply the current theme through init on renderer reinit, not setTheme", () => {
+    const el = document.createElement("div");
+    const [container, setContainer] = createSignal<HTMLDivElement | null>(null);
+    const [renderer, setRenderer] = createSignal<"canvas" | "svg">("canvas");
+    const [theme, setTheme] = createSignal<string>(DEFAULT_THEME);
+    const chart1 = createMockInstance();
+    const chart2 = createMockInstance();
+    vi.mocked(echartsCore.init).mockReturnValueOnce(chart1).mockReturnValueOnce(chart2);
+
+    setupChart(container, { renderer, theme });
+    setContainer(el);
+    setTheme(DARK_THEME);
+    setRenderer("svg");
+
+    expect(vi.mocked(echartsCore.init).mock.calls[1]?.[1]).toBe(DARK_THEME);
+    expect(chart2.setTheme).not.toHaveBeenCalled();
   });
 });
 
