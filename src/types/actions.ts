@@ -23,6 +23,9 @@ export type ActionPayloadMap = {
   timelineChange: TimelineChangePayload;
   timelinePlayChange: TimelinePlayChangePayload;
   geoRoam: GeoRoamPayload;
+  graphRoam: GraphRoamPayload;
+  treeRoam: TreeRoamPayload;
+  sankeyRoam: SankeyRoamPayload;
   focusNodeAdjacency: FocusNodeAdjacencyPayload;
   unfocusNodeAdjacency: UnfocusNodeAdjacencyPayload;
 };
@@ -248,6 +251,20 @@ export type RoamDelta = {
 };
 
 /**
+ * Fields that narrow an action to specific series, without targeting data items.
+ */
+export type SeriesQuery = Pick<SeriesTarget, "seriesIndex" | "seriesId" | "seriesName">;
+
+/**
+ * Base type for roam actions of series that own their view (`graph`, `tree`,
+ * `sankey`). Omitting all {@link SeriesQuery} fields roams every series of
+ * that type.
+ *
+ * @typeParam T - The ECharts roam action type string literal (e.g. `"graphRoam"`).
+ */
+export type SeriesRoamPayload<T extends ActionKind> = SimplePayload<T, RoamDelta & SeriesQuery>;
+
+/**
  * Payload of the `geoRoam` action.
  *
  * @remarks
@@ -258,21 +275,22 @@ export type RoamDelta = {
  */
 export type GeoRoamPayload = SimplePayload<
   "geoRoam",
-  RoamDelta & {
-    /** Target geo component by its `id`. */
-    geoId?: string | string[];
-    /** Target geo component by index in `option.geo`. */
-    geoIndex?: number | number[];
-    /** Target geo component by its `name`. */
-    geoName?: string | string[];
-    /** Target map series by its `id`. */
-    seriesId?: string | string[];
-    /** Target map series by index in `option.series`. */
-    seriesIndex?: number | number[];
-    /** Target map series by its `name`. */
-    seriesName?: string | string[];
-  }
+  RoamDelta &
+    SeriesQuery & {
+      /** Target geo component by its `id`. */
+      geoId?: string | string[];
+      /** Target geo component by index in `option.geo`. */
+      geoIndex?: number | number[];
+      /** Target geo component by its `name`. */
+      geoName?: string | string[];
+    }
 >;
+
+export type GraphRoamPayload = SeriesRoamPayload<"graphRoam">;
+
+export type TreeRoamPayload = SeriesRoamPayload<"treeRoam">;
+
+export type SankeyRoamPayload = SeriesRoamPayload<"sankeyRoam">;
 
 export type FocusNodeAdjacencyPayload = SimplePayload<
   "focusNodeAdjacency",
@@ -339,6 +357,9 @@ export type ActionPayload =
   | TimelineChangePayload
   | TimelinePlayChangePayload
   | GeoRoamPayload
+  | GraphRoamPayload
+  | TreeRoamPayload
+  | SankeyRoamPayload
   | FocusNodeAdjacencyPayload
   | UnfocusNodeAdjacencyPayload
   // Escape hatch - custom actions registered via registerAction

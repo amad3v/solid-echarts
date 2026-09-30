@@ -322,6 +322,45 @@ export const seActions = {
   geoRoam: actionFactory("geoRoam"),
 
   /**
+   * Pans or zooms a graph series, relative to its current view.
+   *
+   * @param payload - `dx` + `dy` pan by pixels, `zoom` + `originX` + `originY`
+   * zoom around a pixel. `seriesId` / `seriesIndex` / `seriesName` narrow the
+   * target, omitting them roams every graph series.
+   *
+   * @example
+   * ```ts
+   * dispatch(seActions.graphRoam({ seriesIndex: 0, dx: 40, dy: 0 }));
+   * dispatch(seActions.graphRoam({ seriesIndex: 0, zoom: 2, originX: 200, originY: 150 }));
+   * ```
+   */
+  graphRoam: actionFactory("graphRoam"),
+
+  /**
+   * Pans or zooms a tree series, relative to its current view.
+   *
+   * @param payload - Same fields as `seActions.graphRoam`.
+   *
+   * @example
+   * ```ts
+   * dispatch(seActions.treeRoam({ seriesIndex: 0, dx: 0, dy: -30 }));
+   * ```
+   */
+  treeRoam: actionFactory("treeRoam"),
+
+  /**
+   * Pans or zooms a sankey series, relative to its current view.
+   *
+   * @param payload - Same fields as `seActions.graphRoam`.
+   *
+   * @example
+   * ```ts
+   * dispatch(seActions.sankeyRoam({ seriesIndex: 0, zoom: 1.5, originX: 200, originY: 150 }));
+   * ```
+   */
+  sankeyRoam: actionFactory("sankeyRoam"),
+
+  /**
    * Highlights the adjacency of a node in a graph series.
    *
    * @param payload - `seriesIndex` + `dataIndex` identify the node.

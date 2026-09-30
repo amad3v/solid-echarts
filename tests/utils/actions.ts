@@ -27,6 +27,9 @@ const cases: [ActionKind, PayloadTest][] = [
   ["timelineChange", { currentIndex: 1 }],
   ["timelinePlayChange", { playState: true }],
   ["geoRoam", { geoIndex: 0, dx: 40, dy: 10 }],
+  ["graphRoam", { seriesIndex: 0, dx: 40, dy: 10 }],
+  ["treeRoam", { seriesId: "tree", zoom: 2, originX: 200, originY: 150 }],
+  ["sankeyRoam", { seriesName: "flow", dx: -5, dy: 0 }],
   ["focusNodeAdjacency", { seriesIndex: 0, dataIndex: 1 }],
   ["unfocusNodeAdjacency", { seriesIndex: 0, dataIndex: 1 }],
 ];

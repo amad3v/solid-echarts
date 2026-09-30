@@ -484,6 +484,13 @@ describe("onEvents prop", () => {
     >();
   });
 
+  it("should type selfType as an optional event param", () => {
+    expectTypeOf<EventParams["selfType"]>().toEqualTypeOf<
+      "line" | "area" | "breadcrumb" | undefined
+    >();
+    expectTypeOf<"sankeyroam">().toExtend<keyof SolidEChartEventMap>();
+  });
+
   it("should register multiple handlers for different events", () => {
     const chart = createMockChartWithInit();
     const onClick = vi.fn();

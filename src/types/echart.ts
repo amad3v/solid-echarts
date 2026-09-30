@@ -21,6 +21,7 @@ import type { CreateChartEffectOptions } from "./primitives";
  * components or internal state changes: `highlight`, `downplay`,
  * `selectchanged`, `legendselectchanged`, `legendselected`,
  * `legendunselected`, `legendscroll`, `datazoom`, `datarangeselected`,
+ * `graphroam`, `georoam`, `treeroam`, `sankeyroam`,
  * `timelinechanged`, `timelineplaychanged`, `restore`, `rendered`,
  * `finished`, `brush`, `brushEnd`, `brushselected`, `globalcursortaken`,
  * `axisareaselected`, `showtip`, `hidetip`, `updateaxispointer`,
@@ -72,6 +73,7 @@ export type SolidEChartEventName =
   | "graphroam"
   | "georoam"
   | "treeroam"
+  | "sankeyroam"
   | "timelinechanged"
   | "timelineplaychanged"
   | "restore"
@@ -184,6 +186,13 @@ export type EventParams = {
    * Fill color of the shape. Only meaningful when `componentType` is `"series"`.
    */
   color: string;
+
+  /**
+   * Which part of the element fired the event. `"line"` or `"area"` on a
+   * line series (ECharts 6.1+), `"breadcrumb"` on a treemap breadcrumb.
+   * Absent otherwise.
+   */
+  selfType?: "line" | "area" | "breadcrumb";
 };
 
 /**
