@@ -269,7 +269,8 @@ export const seActions = {
   /**
    * Sets brush selection areas programmatically.
    *
-   * @param payload - `areas` defines the selection regions. Requires the
+   * @param payload - `areas` defines the selection regions, each with a
+   * mandatory `brushType`. An empty array clears the selection. Requires the
    * `BrushComponent` to be registered via {@link seSetup}.
    *
    * @example

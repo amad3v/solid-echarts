@@ -1,3 +1,4 @@
+import type { DataZoomComponentOption, TooltipComponentOption } from "echarts/components";
 import type { Payload } from "echarts/core";
 
 /**
@@ -34,14 +35,36 @@ export type ActionKind = keyof ActionPayloadMap;
 
 /**
  * Derived type for the full `seActions` object.
- * Each entry is a factory: optional input (no `type` field) -> complete payload.
+ * Each entry is an {@link ActionCreator}.
  */
 export type SeActions = {
-  [K in ActionKind]: (payload?: PayloadInput<ActionPayloadMap[K]>) => ActionPayloadMap[K];
+  [K in ActionKind]: ActionCreator<K>;
 };
 
+/**
+ * Names of the explicitly declared, non-optional properties of `T`.
+ * Index signatures are ignored.
+ */
+type RequiredKeys<T> = keyof {
+  [
+    K in keyof T as string extends K
+      ? never
+      : number extends K
+        ? never
+        : object extends Pick<T, K>
+          ? never
+          : K
+  ]: never;
+};
+
+/**
+ * Factory for one action kind: input (no `type` field) -> complete payload.
+ * The input is mandatory when the payload has required fields, optional otherwise.
+ */
 export type ActionCreator<K extends ActionKind> = (
-  payload?: PayloadInput<ActionPayloadMap[K]>,
+  ...args: [RequiredKeys<PayloadInput<ActionPayloadMap[K]>>] extends [never]
+    ? [payload?: PayloadInput<ActionPayloadMap[K]>]
+    : [payload: PayloadInput<ActionPayloadMap[K]>]
 ) => ActionPayloadMap[K];
 
 /**
@@ -77,6 +100,18 @@ export type SimplePayload<T extends ActionKind, Extra extends object = object> =
 } & Extra;
 
 /**
+ * Selects components by index, as ECharts resolves `xxxIndex` payload fields.
+ * `"all"` selects every component, `"none"` and `false` select nothing.
+ */
+export type ComponentIndexQuery = number | number[] | "all" | "none" | false;
+
+/**
+ * Selects components by `id` or `name`, as ECharts resolves `xxxId` and
+ * `xxxName` payload fields. ECharts accepts numbers as well as strings.
+ */
+export type ComponentIdQuery = string | number | (string | number)[];
+
+/**
  * Fields common to actions that target series data elements.
  *
  * @remarks
@@ -89,17 +124,17 @@ export type SimplePayload<T extends ActionKind, Extra extends object = object> =
  */
 export type SeriesTarget = {
   /** Target series by index in `option.series`. Accepts an array for multiple series. */
-  seriesIndex?: number | number[];
+  seriesIndex?: ComponentIndexQuery;
   /** Target series by its `id`. Accepts an array for multiple series. */
-  seriesId?: string | string[];
+  seriesId?: ComponentIdQuery;
   /** Target series by its `name`. Accepts an array for multiple series. */
-  seriesName?: string | string[];
+  seriesName?: ComponentIdQuery;
   /** Target a data item by its index in `series.data`. Accepts an array for bulk operations. */
   dataIndex?: number | number[];
   /** Target a data item by its inside index. */
-  dataIndexInside?: number;
+  dataIndexInside?: number | number[];
   /** Target a data item by its `name`. Accepts an array for bulk operations. */
-  name?: string | string[];
+  name?: ComponentIdQuery;
 };
 
 /**
@@ -122,6 +157,9 @@ export type DispatchOpt = {
  * Derives the input type for an {@link seActions} factory by omitting
  * the `type` field - which is always injected by the factory itself.
  *
+ * Implemented as a key-remapping mapped type: `Omit` would drop every declared
+ * field, because `Payload` carries an index signature.
+ *
  * @typeParam T - A payload type with a `type: string` field.
  *
  * @example
@@ -131,12 +169,14 @@ export type DispatchOpt = {
  *   ({ type: 'highlight', ...payload }) as HighlightPayload
  * ```
  */
-export type PayloadInput<T extends { type: ActionKind }> = Omit<T, "type">;
+export type PayloadInput<T extends { type: ActionKind }> = {
+  [K in keyof T as Exclude<K, "type">]: T[K];
+};
 
 // Action payload types
 export type HighlightPayload = TypedPayload<"highlight", { notBlur?: boolean }>;
 
-export type DownplayPayload = TypedPayload<"downplay">;
+export type DownplayPayload = TypedPayload<"downplay", { notBlur?: boolean }>;
 
 export type SelectPayload = TypedPayload<"select">;
 
@@ -150,7 +190,11 @@ export type ShowTipPayload = SimplePayload<
     seriesIndex?: number;
     dataIndex?: number;
     name?: string;
-    position?: string | number[] | ((...args: unknown[]) => unknown);
+    /** Horizontal pixel coordinate to show the tooltip at. */
+    x?: number;
+    /** Vertical pixel coordinate to show the tooltip at. */
+    y?: number;
+    position?: TooltipComponentOption["position"];
   }
 >;
 
@@ -184,29 +228,49 @@ export type LegendInverseSelectPayload = SimplePayload<"legendInverseSelect">;
 export type DataZoomPayload = SimplePayload<
   "dataZoom",
   {
-    /** Targets a specific dataZoom component by index. */
-    dataZoomIndex?: number;
+    /** Targets dataZoom components by index. */
+    dataZoomIndex?: ComponentIndexQuery;
+    /** Targets dataZoom components by `id`. */
+    dataZoomId?: ComponentIdQuery;
     /** Percentage-based range start (0–100). */
     start?: number;
     /** Percentage-based range end (0–100). */
     end?: number;
     /** Data value-based range start. */
-    startValue?: number;
+    startValue?: DataZoomComponentOption["startValue"];
     /** Data value-based range end. */
-    endValue?: number;
+    endValue?: DataZoomComponentOption["endValue"];
   }
 >;
 
 export type RestorePayload = SimplePayload<"restore">;
 
+/**
+ * One selection area of a {@link BrushPayload}.
+ *
+ * @remarks
+ *
+ * Give `range` for pixel coordinates or `coordRange` for data coordinates.
+ * Any other field (`xAxisIndex`, `geoIndex`, `panelId`, ...) selects the
+ * coordinate system the area belongs to.
+ */
+export type BrushArea = {
+  brushType: BrushType;
+  /** Range in data coordinates. */
+  coordRange?: unknown[];
+  /** Range in pixels: `[min, max]` for `lineX` / `lineY`, a list of pairs otherwise. */
+  range?: number[] | number[][];
+  [coordinateSystemQuery: string]: unknown;
+};
+
 export type BrushPayload = SimplePayload<
   "brush",
   {
-    areas: Array<{
-      brushType?: BrushType;
-      coordRange?: unknown[];
-      range?: number[][];
-    }>;
+    /**
+     * Selection areas. An empty array removes all areas, omitting the field
+     * keeps the current ones.
+     */
+    areas?: BrushArea[];
   }
 >;
 
@@ -278,11 +342,11 @@ export type GeoRoamPayload = SimplePayload<
   RoamDelta &
     SeriesQuery & {
       /** Target geo component by its `id`. */
-      geoId?: string | string[];
+      geoId?: ComponentIdQuery;
       /** Target geo component by index in `option.geo`. */
-      geoIndex?: number | number[];
+      geoIndex?: ComponentIndexQuery;
       /** Target geo component by its `name`. */
-      geoName?: string | string[];
+      geoName?: ComponentIdQuery;
     }
 >;
 

@@ -237,10 +237,11 @@ No-ops when instance is null or disposed. SSR-safe.
 
 Typed factory functions for ECharts `dispatchAction` payloads. The factory injects `type` automatically.
 
-Factories are type-safe by construction: payload-less actions remain callable with no arguments,
-while actions that require fields now require those fields at compile time.
-This matches ECharts' action payload model, where `dispatchAction` is called with an action object
-such as `showTip`, `hideTip`, `legendSelect`, or `timelineChange`.
+The declared fields of each payload are type-checked. A payload argument is mandatory only for the
+actions ECharts cannot run without a field: `legendSelect`, `legendUnSelect` and
+`legendToggleSelect` (`name`), `timelineChange` (`currentIndex`) and `timelinePlayChange`
+(`playState`). Every other factory can be called with no arguments. Fields a payload type does not
+declare are passed through unchecked, as `dispatchAction` accepts any extra field.
 
 ```ts
 seActions.highlight({ seriesIndex: 0, dataIndex: 2 })
@@ -257,7 +258,7 @@ seActions.legendAllSelect()
 seActions.legendInverseSelect()
 seActions.dataZoom({ start: 20, end: 80 })
 seActions.restore()
-seActions.brush({ areas: [...] })
+seActions.brush({ areas: [{ brushType: 'rect', range: [[10, 50], [20, 60]] }] })
 seActions.timelineChange({ currentIndex: 2 })
 seActions.timelinePlayChange({ playState: true })
 seActions.geoRoam({ geoIndex: 0, dx: 40, dy: 0 })

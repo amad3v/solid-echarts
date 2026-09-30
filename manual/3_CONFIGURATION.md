@@ -140,8 +140,8 @@ signature. If the key is removed on the next render, `autoMerge` will correctly 
 `notMerge: true`. This is intentional - `null` signals key presence, not absence.
 
 **`seActions` enforces payload requirements.**
-Actions with required fields cannot be called with no arguments. Only payload-less actions such as
-`hideTip`, `restore`, `legendAllSelect`, and `legendInverseSelect` remain zero-arg.
+`legendSelect`, `legendUnSelect`, `legendToggleSelect`, `timelineChange` and `timelinePlayChange`
+cannot be called without their required field. All other factories accept zero arguments.
 
 | [< API Summary](./2_API_SUMMARY.md) |
 | ----------------------------------- |

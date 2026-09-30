@@ -1,36 +1,105 @@
+import type { Payload } from "echarts/core";
 import { describe, expect, expectTypeOf, it } from "vitest";
 
 import { seActions } from "../src/actions";
-import type { GeoRoamPayload, RoamDelta, SeriesRoamPayload } from "../src/types/actions";
+import type {
+  ComponentIdQuery,
+  ComponentIndexQuery,
+  GeoRoamPayload,
+  PayloadInput,
+  RoamDelta,
+  SeriesRoamPayload,
+  TimelineChangePayload,
+} from "../src/types/actions";
+import type { ActionCreatorTest } from "./utils/actions";
 import { testCases } from "./utils/actions";
+
+// The runtime cases are data-driven over every action kind, so the creators
+// are called through one loose signature instead of their own typed ones.
+type LooseCreator = (payload?: Record<string, unknown> | null) => Payload;
+const creatorOf = (name: ActionCreatorTest["name"]): LooseCreator =>
+  seActions[name] as LooseCreator;
 
 describe("seActions", () => {
   testCases.forEach(({ name, payload, typeString }) => {
     describe(`${name} action creator`, () => {
       it(`should create an action with type "${typeString}"`, () => {
-        const action = seActions[name](payload);
+        const action = creatorOf(name)(payload);
         expect(action.type).toStrictEqual(typeString);
       });
 
       it("should include the provided payload", () => {
-        const action = seActions[name](payload);
+        const action = creatorOf(name)(payload);
         Object.keys(payload).forEach((key) => {
-          expect(action[key as keyof typeof action]).toStrictEqual(payload[key]);
+          expect(action[key]).toStrictEqual(payload[key]);
         });
       });
 
       it("should default payload to empty object if none provided", () => {
-        const action = seActions[name]();
+        const action = creatorOf(name)();
         expect(action.type).toStrictEqual(typeString);
       });
 
       it("should accept undefined or null payload without crashing", () => {
-        const action1 = seActions[name](undefined);
-        // @ts-expect-error used for test purposes
-        const action2 = seActions[name](null);
+        const action1 = creatorOf(name)(undefined);
+        const action2 = creatorOf(name)(null);
         expect(action1.type).toStrictEqual(typeString);
         expect(action2.type).toStrictEqual(typeString);
       });
+    });
+  });
+
+  describe("payload requirements", () => {
+    it("should keep the declared payload fields in the creator input", () => {
+      expectTypeOf<PayloadInput<TimelineChangePayload>>().toHaveProperty("currentIndex");
+      expectTypeOf<PayloadInput<TimelineChangePayload>["currentIndex"]>().toEqualTypeOf<number>();
+    });
+
+    it("should require a payload for actions with required fields", () => {
+      expectTypeOf(seActions.legendSelect).toBeCallableWith({ name: "Revenue" });
+      expectTypeOf(seActions.timelineChange).toBeCallableWith({ currentIndex: 2 });
+      expectTypeOf(seActions.timelinePlayChange).toBeCallableWith({ playState: true });
+
+      // @ts-expect-error `name` is required
+      seActions.legendSelect();
+      // @ts-expect-error `name` is required
+      seActions.legendToggleSelect({});
+      // @ts-expect-error `name` is required
+      seActions.legendUnSelect({});
+      // @ts-expect-error `currentIndex` is required
+      seActions.timelineChange();
+      // @ts-expect-error `playState` is required
+      seActions.timelinePlayChange({});
+    });
+
+    it("should reject wrongly typed fields", () => {
+      type InputOf<K extends keyof typeof seActions> = Parameters<(typeof seActions)[K]>[0];
+
+      expectTypeOf({ name: 1 }).not.toExtend<InputOf<"legendSelect">>();
+      expectTypeOf({ dataIndex: "x" }).not.toExtend<InputOf<"highlight">>();
+      // `brushType` is required on every area
+      expectTypeOf({ areas: [{ range: [0, 10] }] }).not.toExtend<InputOf<"brush">>();
+    });
+
+    it("should allow omitting the payload for actions without required fields", () => {
+      expectTypeOf(seActions.hideTip).toBeCallableWith();
+      expectTypeOf(seActions.restore).toBeCallableWith();
+      expectTypeOf(seActions.legendAllSelect).toBeCallableWith();
+      expectTypeOf(seActions.legendInverseSelect).toBeCallableWith();
+      expectTypeOf(seActions.highlight).toBeCallableWith();
+      expectTypeOf(seActions.brush).toBeCallableWith();
+      expectTypeOf(seActions.graphRoam).toBeCallableWith();
+    });
+
+    it("should accept the field values ECharts accepts", () => {
+      expectTypeOf(seActions.highlight).toBeCallableWith({ seriesIndex: "all", seriesId: 3 });
+      expectTypeOf(seActions.showTip).toBeCallableWith({ x: 10, y: 20, position: ["50%", 10] });
+      expectTypeOf(seActions.dataZoom).toBeCallableWith({ dataZoomId: "z", startValue: "Mon" });
+      expectTypeOf(seActions.brush).toBeCallableWith({
+        areas: [{ brushType: "lineX", range: [10, 50], xAxisIndex: 0 }],
+      });
+      // Fields the payload types do not declare still pass through.
+      expectTypeOf(seActions.restore).toBeCallableWith({ escapeConnect: true, custom: 1 });
     });
   });
 
@@ -41,14 +110,14 @@ describe("seActions", () => {
       expectTypeOf(seActions.sankeyRoam).returns.toEqualTypeOf<SeriesRoamPayload<"sankeyRoam">>();
       expectTypeOf<SeriesRoamPayload<"graphRoam">>().toExtend<RoamDelta>();
       expectTypeOf<SeriesRoamPayload<"graphRoam">["seriesId"]>().toEqualTypeOf<
-        string | string[] | undefined
+        ComponentIdQuery | undefined
       >();
     });
 
     it("should type geoRoam with geo and series targets", () => {
       expectTypeOf<GeoRoamPayload>().toExtend<RoamDelta>();
-      expectTypeOf<GeoRoamPayload["geoIndex"]>().toEqualTypeOf<number | number[] | undefined>();
-      expectTypeOf<GeoRoamPayload["seriesName"]>().toEqualTypeOf<string | string[] | undefined>();
+      expectTypeOf<GeoRoamPayload["geoIndex"]>().toEqualTypeOf<ComponentIndexQuery | undefined>();
+      expectTypeOf<GeoRoamPayload["seriesName"]>().toEqualTypeOf<ComponentIdQuery | undefined>();
     });
   });
 });
