@@ -33,7 +33,7 @@ The primary component. All props are optional, but `option` must be an accessor 
 #### Merge strategy props
 
 These configure the `setOption` call. Read with `untrack` - changing them alone does **not** trigger
- a re-render.
+a re-render.
 
 | Prop            | Type                                      | Default | Notes                                                                           |
 | --------------- | ----------------------------------------- | ------- | ------------------------------------------------------------------------------- |
@@ -45,8 +45,8 @@ These configure the `setOption` call. Read with `untrack` - changing them alone 
 | `updateOptions` | `MaybeAccessor<CreateChartEffectOptions>` | `{}`    | Provider/default merge strategy values merged into `createChartEffect` options. |
 
 When `autoMerge: true`, `notMerge` and `replaceMerge` are ignored. The library diffs the previous
- and new option structure and automatically selects the minimal merge strategy. `lazyUpdate` and
-  `silent` still apply. See [autoMerge](./3_CONFIGURATION.md#automerge) below.
+and new option structure and automatically selects the minimal merge strategy. `lazyUpdate` and
+`silent` still apply. See [autoMerge](./3_CONFIGURATION.md#automerge) below.
 
 #### Event props
 
@@ -60,8 +60,8 @@ When `autoMerge: true`, `notMerge` and `replaceMerge` are ignored. The library d
 **`onEventsOnce`**
 
 Each handler is wrapped and registered with `chart.on()`, then removed after its first invocation
- with `chart.off()`. The cleanup registered through `onCleanup()` ensures listeners are detached when
-  Solid re-runs the effect or disposes the scope.
+with `chart.off()`. The cleanup registered through `onCleanup()` ensures listeners are detached when
+Solid re-runs the effect or disposes the scope.
 
 #### Lifecycle callbacks
 
@@ -92,20 +92,20 @@ Receives `null` during dispose and reinit; receives the live instance when ready
 #### Container passthrough
 
 `style`, `class`, and all standard HTML attributes (`id`, `aria-*`, `data-*`, DOM event handlers)
- are forwarded to the container `<div>`. Unrecognised props pass through rather than being silently
-  discarded.
+are forwarded to the container `<div>`. Unrecognised props pass through rather than being silently
+discarded.
 
 ### `<SolidEChartProvider />`
 
 Provides shared configuration defaults to all descendant `<SolidEChart />` components.
 
 Accepts the shared config props only: `theme`, `renderer`, `locale`, `group`, `devicePixelRatio`,
- `useDirtyRect`, `useCoarsePointer`, `pointerSize`, `ssr`, `width`, `height`, `autoResize`,
-  `resizeDebounce`, and `updateOptions`.
+`useDirtyRect`, `useCoarsePointer`, `pointerSize`, `ssr`, `width`, `height`, `autoResize`,
+`resizeDebounce`, and `updateOptions`.
 
-* Per-chart props always win over provider values.
-* Providers can be nested; each inner provider shadows only what it explicitly declares - unset props fall through to the nearest outer provider.
-* All props accept `MaybeAccessor<T>`.
+- Per-chart props always win over provider values.
+- Providers can be nested; each inner provider shadows only what it explicitly declares - unset props fall through to the nearest outer provider.
+- All props accept `MaybeAccessor<T>`.
 
 ```tsx
 <SolidEChartProvider theme="dark" renderer="canvas" group="dashboard">
@@ -115,13 +115,13 @@ Accepts the shared config props only: `theme`, `renderer`, `locale`, `group`, `d
 ```
 
 `updateOptions` provides default merge-strategy values for all charts in the subtree.
- Per-chart `notMerge`, `replaceMerge`, `lazyUpdate`, `silent`, and `autoMerge` values override the
-  corresponding field from `updateOptions`.
+Per-chart `notMerge`, `replaceMerge`, `lazyUpdate`, `silent`, and `autoMerge` values override the
+corresponding field from `updateOptions`.
 
 ### `useChart()`
 
 Returns access to the nearest ancestor `<SolidEChart />` instance. Must be called inside the
- `<SolidEChart />` component tree (typically via `children` prop).
+`<SolidEChart />` component tree (typically via `children` prop).
 
 ```ts
 const { instance, dispatch, chart } = useChart();
@@ -134,15 +134,15 @@ const { instance, dispatch, chart } = useChart();
 | `chart`    | `SolidEChartAPI`                                      | Stable proxy object. Calls instance methods directly; returns `undefined` when no instance is available. |
 
 `chart` exposes: `getId`, `getWidth`, `getHeight`, `getDevicePixelRatio`, `getDom`, `getOption`,
- `isDisposed`, `isSSR`, `getDataURL`, `getConnectedDataURL`, `renderToSVGString`, `renderToCanvas`,
- `convertToPixel`, `convertFromPixel`, `convertToLayout`, `containPixel`, `getVisual`, `appendData`,
- `clear`.
+`isDisposed`, `isSSR`, `getDataURL`, `getConnectedDataURL`, `renderToSVGString`, `renderToCanvas`,
+`convertToPixel`, `convertFromPixel`, `convertToLayout`, `containPixel`, `getVisual`, `appendData`,
+`clear`.
 
 Methods managed by the library (`setOption`, `setTheme`, `showLoading`, `resize`, `on`/`off`,
- `dispatchAction`, `dispose`) are intentionally excluded from `SolidEChartAPI`.
+`dispatchAction`, `dispose`) are intentionally excluded from `SolidEChartAPI`.
 
 Called outside a `<SolidEChart />` tree: `instance()` returns `null`, `dispatch` is a no-op,
- `chart` methods return `undefined`. `isDisposed()` returns `true` in that state.
+`chart` methods return `undefined`. `isDisposed()` returns `true` in that state.
 
 ### `createChart(container, opts?)`
 
@@ -186,7 +186,7 @@ Must be called inside a reactive root (`createRoot`, component body). Cleanup is
 ### `createChartEffect(instance, option, opts?)`
 
 Bridges a reactive option accessor to `chart.setOption`. Fires immediately on mount (`defer: false`)
- and re-fires when `instance` or `option` changes.
+and re-fires when `instance` or `option` changes.
 
 ```ts
 createChartEffect(instance, option, { notMerge: false });
@@ -202,16 +202,16 @@ createChartEffect(instance, option, { autoMerge: true });
 | `opts`     | `CreateChartEffectOptions`                 | All fields accept `MaybeAccessor<T>`. Read with `untrack` - changes alone do not re-trigger `setOption`. |
 
 `opts.autoMerge: true` enables automatic merge strategy inference. On each option change the library
- diffs the previous and new option structure and selects the minimal strategy. Explicit `notMerge`
- and `replaceMerge` values are ignored in that mode; `lazyUpdate` and `silent` still apply.
+diffs the previous and new option structure and selects the minimal strategy. Explicit `notMerge`
+and `replaceMerge` values are ignored in that mode; `lazyUpdate` and `silent` still apply.
 
 SSR-safe: no-ops on the server.
 
 ### `createAction(instance, action, opt?)`
 
 Reactively dispatches an ECharts action whenever `instance` or `action` changes. Uses `defer: true`,
- the first synchronous evaluation is skipped; the first dispatch happens on the first actual signal
-  change.
+the first synchronous evaluation is skipped; the first dispatch happens on the first actual signal
+change.
 
 ```ts
 const [hoveredIndex, setHoveredIndex] = createSignal<number | null>(null);
@@ -238,9 +238,9 @@ No-ops when instance is null or disposed. SSR-safe.
 Typed factory functions for ECharts `dispatchAction` payloads. The factory injects `type` automatically.
 
 Factories are type-safe by construction: payload-less actions remain callable with no arguments,
- while actions that require fields now require those fields at compile time.
- This matches ECharts' action payload model, where `dispatchAction` is called with an action object
- such as `showTip`, `hideTip`, `legendSelect`, or `timelineChange`.
+while actions that require fields now require those fields at compile time.
+This matches ECharts' action payload model, where `dispatchAction` is called with an action object
+such as `showTip`, `hideTip`, `legendSelect`, or `timelineChange`.
 
 ```ts
 seActions.highlight({ seriesIndex: 0, dataIndex: 2 })
@@ -278,7 +278,7 @@ Thin wrapper around `echarts.use()`. See [Setup](../README.md#setup).
 ### `optionMergePlan(prevSignature, option)`
 
 Pure function. Diffs a previous option signature against a new option and returns the minimal
- `setOption` merge strategy.
+`setOption` merge strategy.
 
 ```ts
 let lastSignature: OptionSignature | null = null;
@@ -295,7 +295,7 @@ chart.setOption(plan.option, {
 **Returns:** `MergePlan` - `{ option, signature, notMerge, replaceMerge }`
 
 Pass `null` as `prevSignature` on first render. Pass `plan.signature` from the previous call on
- subsequent renders.
+subsequent renders.
 
 ---
 

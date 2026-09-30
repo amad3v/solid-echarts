@@ -14,17 +14,17 @@
 
 `solid-echarts` is a thin, idiomatic SolidJS wrapper around [Apache ECharts 6](https://echarts.apache.org/). It exposes:
 
-* A declarative `<SolidEChart />` component with reactive props and init-time options
-* A context-based provider for shared configuration across multiple charts
-* Primitive functions (`createChart`, `createChartEffect`, `createAction`) for building custom chart integrations
-* Typed action factories and a `useChart()` hook for imperative access
+- A declarative `<SolidEChart />` component with reactive props and init-time options
+- A context-based provider for shared configuration across multiple charts
+- Primitive functions (`createChart`, `createChartEffect`, `createAction`) for building custom chart integrations
+- Typed action factories and a `useChart()` hook for imperative access
 
 **Core use cases:**
 
-* Drop-in reactive charts driven by SolidJS signals
-* Shared dashboards with synchronised zoom, tooltip, and theme
-* Streaming or imperatively-updated charts that bypass the reactive layer
-* Custom layouts where chart logic is decoupled from the component tree
+- Drop-in reactive charts driven by SolidJS signals
+- Shared dashboards with synchronised zoom, tooltip, and theme
+- Streaming or imperatively-updated charts that bypass the reactive layer
+- Custom layouts where chart logic is decoupled from the component tree
 
 ## Installation
 
@@ -49,7 +49,7 @@ yarn add @amad3v/solid-echarts echarts
 ## Setup
 
 Call `seSetup` once at application root **before any `<SolidEChart />` renders**.
- It registers the needed ECharts extensions (charts, components, renderers).
+It registers the needed ECharts extensions (charts, components, renderers).
 
 ```ts
 import {
@@ -65,7 +65,7 @@ seSetup([BarChart, LineChart, GridComponent, TooltipComponent, CanvasRenderer]);
 ```
 
 Only registered extensions are included in your bundle.
- ECharts is fully tree-shakable through this call.
+ECharts is fully tree-shakable through this call.
 
 `seSetup` is idempotent: calling it multiple times with already-registered extensions is a no-op.
 
@@ -89,9 +89,9 @@ const option = () => ({
 
 ### Manual
 
-* [Core Concepts](https://codeberg.org/amad3v/solid-echarts/src/commit/4803bc21f97209f52ad9da1cc19f3e9d0467ff10/manual/1_CORE_CONCEPTS.md)
-* [API Summary](https://codeberg.org/amad3v/solid-echarts/src/commit/4803bc21f97209f52ad9da1cc19f3e9d0467ff10/manual/2_API_SUMMARY.md)
-* [Configuration](https://codeberg.org/amad3v/solid-echarts/src/commit/4803bc21f97209f52ad9da1cc19f3e9d0467ff10/manual/3_CONFIGURATION.md)
+- [Core Concepts](https://codeberg.org/amad3v/solid-echarts/src/commit/4803bc21f97209f52ad9da1cc19f3e9d0467ff10/manual/1_CORE_CONCEPTS.md)
+- [API Summary](https://codeberg.org/amad3v/solid-echarts/src/commit/4803bc21f97209f52ad9da1cc19f3e9d0467ff10/manual/2_API_SUMMARY.md)
+- [Configuration](https://codeberg.org/amad3v/solid-echarts/src/commit/4803bc21f97209f52ad9da1cc19f3e9d0467ff10/manual/3_CONFIGURATION.md)
 
 ## License
 
