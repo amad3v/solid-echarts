@@ -17,6 +17,8 @@ import { connect } from "echarts/core";
  *
  * - **Init/dispose** - creates the instance when `container` is available,
  *   disposes on cleanup. Only `renderer` triggers a full reinit cycle.
+ *   With `initOnVisible`, the first init waits until the container enters
+ *   the viewport.
  * - **Theme** - applies via `setTheme` in place (ECharts 6+). No reinit.
  * - **Group** - updates `chart.group` and calls `connect` in place.
  * - **Resize** - attaches a debounced `ResizeObserver`. Toggles reactively
@@ -81,10 +83,37 @@ export const createChart = (
     height,
     resizeDebounce: debounceMs = 100,
     onResize,
+    initOnVisible = false,
   } = opts;
 
   const [instance, setInstance] = createSignal<EChartsType | null>(null);
   const [prevGroup, setPrevGroup] = createSignal<string | undefined>();
+
+  // Visibility gate (`initOnVisible`)
+  // Open from the start unless deferral is requested and the browser can
+  // observe. Once open it stays open: a chart is never disposed for leaving
+  // the viewport, and a renderer reinit does not wait again.
+  const [visible, setVisible] = createSignal(
+    !initOnVisible || typeof IntersectionObserver === "undefined",
+  );
+
+  createEffect(
+    on(container, (element) => {
+      if (!element || visible()) return;
+
+      const observer = new IntersectionObserver((entries) => {
+        if (!entries.some((entry) => entry.isIntersecting)) return;
+
+        observer.disconnect();
+        setVisible(true);
+      });
+      observer.observe(element);
+
+      onCleanup(() => {
+        observer.disconnect();
+      });
+    }),
+  );
 
   let resizeObserver: ResizeObserver | null = null;
   // Tracks the last successfully connected group id so we can disconnect when it changes.
@@ -92,7 +121,7 @@ export const createChart = (
   // let prevGroup: string | undefined = undefined;
 
   // Core effect
-  // Tracked dependencies: container and renderer only.
+  // Tracked dependencies: container, renderer and the visibility gate.
   //
   // theme IS an init argument and is read once via `untrack` at init time.
   // It does not belong in the tracked dependencies: later changes are applied
@@ -105,9 +134,9 @@ export const createChart = (
   // No snapshot needed here.
   createEffect(
     on(
-      [container, renderer],
-      ([element, rendererValue]) => {
-        if (!element) return;
+      [container, renderer, visible],
+      ([element, rendererValue, isVisible]) => {
+        if (!element || !isVisible) return;
 
         const initOptions = {
           renderer: rendererValue,

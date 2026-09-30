@@ -17,6 +17,7 @@ const configValueKeys = [
   "useCoarsePointer",
   "autoResize",
   "resizeDebounce",
+  "initOnVisible",
   "updateOptions",
   "pointerSize",
   "ssr",

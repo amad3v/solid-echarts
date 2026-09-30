@@ -25,6 +25,7 @@ const defaultConfigContextValue: SolidEChartConfigContextValue = {
   height: () => undefined,
   autoResize: () => true,
   resizeDebounce: () => 100,
+  initOnVisible: () => false,
   updateOptions: () => ({}),
 };
 

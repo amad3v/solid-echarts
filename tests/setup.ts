@@ -20,3 +20,30 @@ export class MockResizeObserver {
 }
 
 globalThis.ResizeObserver = MockResizeObserver;
+
+export class MockIntersectionObserver {
+  static instances: MockIntersectionObserver[] = [];
+  static reset(): void {
+    MockIntersectionObserver.instances = [];
+  }
+
+  callback: IntersectionObserverCallback;
+  observe(_target: Element): void {}
+  unobserve(_target: Element): void {}
+  disconnect(): void {}
+
+  emit(isIntersecting: boolean): void {
+    this.callback(
+      [{ isIntersecting } as IntersectionObserverEntry],
+      this as unknown as IntersectionObserver,
+    );
+  }
+
+  constructor(callback: IntersectionObserverCallback) {
+    this.callback = callback;
+    MockIntersectionObserver.instances.push(this);
+  }
+}
+
+globalThis.IntersectionObserver =
+  MockIntersectionObserver as unknown as typeof IntersectionObserver;

@@ -56,7 +56,7 @@ type CreateChartMaybeOptions = {
  * - `autoResize` - attaches or detaches the `ResizeObserver`
  *
  * **Static - read at init time only:**
- * - `locale`, `devicePixelRatio`, `useDirtyRect`, `resizeDebounce`
+ * - `locale`, `devicePixelRatio`, `useDirtyRect`, `resizeDebounce`, `initOnVisible`
  *
  * @see {@link createChart}
  */
@@ -68,6 +68,16 @@ export type CreateChartOptions = Partial<WithMaybeAccessor<CreateChartMaybeOptio
      * observation without debouncing. Static.
      */
     resizeDebounce?: number;
+
+    /**
+     * When `true`, the instance is created only once the container first
+     * enters the viewport (`IntersectionObserver`), instead of as soon as the
+     * container mounts. `instance` stays `null` until then. The chart is not
+     * disposed when it leaves the viewport again. Falls back to immediate
+     * init where `IntersectionObserver` is not available. Defaults to
+     * `false`. Static.
+     */
+    initOnVisible?: boolean;
 
     /**
      * Called after every successful `chart.resize` triggered by the

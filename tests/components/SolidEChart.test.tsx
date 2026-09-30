@@ -25,6 +25,7 @@ import { SolidEChart } from "../../src/SolidEChart";
 import type { EChartRenderer } from "../../src/types/common";
 import type { EventParams, RenderedEventParams, SolidEChartEventMap } from "../../src/types/echart";
 import { createMockInstance, createMockZr } from "../mocks/echarts";
+import { MockIntersectionObserver } from "../setup";
 import {
   captureOnHandler,
   createMockChartWithInit,
@@ -865,6 +866,26 @@ describe("useChart() inside SolidEChart tree", () => {
     setRenderer("svg");
 
     expect(capturedInstance?.()).toBe(chart2);
+  });
+});
+
+describe("initOnVisible prop", () => {
+  it("should apply the option and fire onInit only once the container is visible", () => {
+    MockIntersectionObserver.reset();
+    const chart = createMockChartWithInit();
+    const onInit = vi.fn();
+    const [option] = createSignal({ series: [] });
+    render(() => (
+      <SolidEChart initOnVisible={true} option={option} onInit={onInit} style={STYLE} />
+    ));
+
+    expect(echartsCore.init).not.toHaveBeenCalled();
+    expect(onInit).not.toHaveBeenCalled();
+
+    MockIntersectionObserver.instances[0]?.emit(true);
+
+    expect(onInit).toHaveBeenCalledWith(chart);
+    expect(vi.mocked(chart.setOption)).toHaveBeenCalledTimes(1);
   });
 });
 

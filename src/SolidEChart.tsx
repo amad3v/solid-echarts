@@ -49,6 +49,7 @@ const CHART_PROPS = [
   "autoResize",
   "devicePixelRatio",
   "group",
+  "initOnVisible",
   "lazyUpdate",
   "loading",
   "loadingOptions",
@@ -94,6 +95,9 @@ const CHART_PROPS = [
  * - **`renderer`**: triggers a full dispose -> reinit cycle (the only prop that does)
  * - **`group`**: updates `chart.group` and calls `connect` in place
  * - **`autoResize`**: attaches or detaches the `ResizeObserver` in place
+ *
+ * With `initOnVisible`, the instance is created only once the container first
+ * enters the viewport, which keeps off-screen charts out of the mount task.
  *
  * Props not passed inherit from the nearest {@link SolidEChartProvider} ancestor.
  * Per-component props always win over provider defaults.
@@ -189,9 +193,10 @@ export const SolidEChart: ParentComponent<SolidEChartProps> = (props) => {
   const resolvedHeight = resolveConfigProp<number | string>("height");
   const resolvedWidth = resolveConfigProp<number | string>("width");
   const resolvedResizeDebounce = resolveConfigProp<number>("resizeDebounce");
+  const resolvedInitOnVisible = resolveConfigProp<boolean>("initOnVisible");
 
   // Core instance
-  // `locale`, `devicePixelRatio`, `useDirtyRect`, and `resizeDebounce` are untracked,
+  // `locale`, `devicePixelRatio`, `useDirtyRect`, `resizeDebounce`, and `initOnVisible` are untracked,
   // they are static init-time values with no in-place update path in `ECharts`.
   // Changes after mount have no effect and should not trigger side effects.
   const { instance } = createChart(containerElement, {
@@ -205,6 +210,7 @@ export const SolidEChart: ParentComponent<SolidEChartProps> = (props) => {
     useCoarsePointer: untrack(resolvedUseCoarsePointer),
     pointerSize: untrack(resolvedPointerSize),
     resizeDebounce: untrack(resolvedResizeDebounce),
+    initOnVisible: untrack(resolvedInitOnVisible),
     ssr: untrack(resolvedSSR),
     width: untrack(resolvedWidth),
     height: untrack(resolvedHeight),

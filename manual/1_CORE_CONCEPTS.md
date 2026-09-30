@@ -20,11 +20,11 @@ You never need to unwrap values before passing them.
 Some props are reactive — they update the chart in place when the signal changes.
 Others are **static** — read once at init time; changes after mount have no effect.
 
-| Category | Props                                                                                                                       | Behaviour                                  |
-| -------- | --------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------ |
-| Reactive | `theme`, `group`, `autoResize`, `renderer`                                                                                  | Update in place (or reinit for `renderer`) |
-| Reactive | `option`, `loading`, `loadingOptions`                                                                                       | Update chart state                         |
-| Static   | `locale`, `devicePixelRatio`, `useDirtyRect`, `resizeDebounce`, `width`, `height`, `ssr`, `useCoarsePointer`, `pointerSize` | Read at `echarts.init()` only              |
+| Category | Props                                                                                                                                        | Behaviour                                  |
+| -------- | -------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------ |
+| Reactive | `theme`, `group`, `autoResize`, `renderer`                                                                                                   | Update in place (or reinit for `renderer`) |
+| Reactive | `option`, `loading`, `loadingOptions`                                                                                                        | Update chart state                         |
+| Static   | `locale`, `devicePixelRatio`, `useDirtyRect`, `resizeDebounce`, `initOnVisible`, `width`, `height`, `ssr`, `useCoarsePointer`, `pointerSize` | Read at `echarts.init()` only              |
 
 ### Instance Lifecycle
 

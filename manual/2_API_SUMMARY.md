@@ -10,25 +10,26 @@ The primary component. All props are optional, but `option` must be an accessor 
 
 #### Configuration props
 
-| Prop               | Type                               | Default                   | Notes                                               |
-| ------------------ | ---------------------------------- | ------------------------- | --------------------------------------------------- |
-| `option`           | `Accessor<SolidEChartOption>`      | -                         | Reactive. Drives `setOption`. Omit for manual mode. |
-| `theme`            | `MaybeAccessor<string \| object>`  | `'default'`               | Calls `setTheme()` in place.                        |
-| `renderer`         | `MaybeAccessor<'canvas' \| 'svg'>` | `'canvas'`                | Triggers full reinit on change.                     |
-| `locale`           | `MaybeAccessor<string>`            | `'EN'`                    | **Static.**                                         |
-| `group`            | `MaybeAccessor<string>`            | -                         | Calls `echarts.connect()` in place.                 |
-| `devicePixelRatio` | `MaybeAccessor<number>`            | `window.devicePixelRatio` | **Static.**                                         |
-| `useDirtyRect`     | `MaybeAccessor<boolean>`           | `false`                   | **Static.**                                         |
-| `useCoarsePointer` | `MaybeAccessor<boolean>`           | `false`                   | **Static.**                                         |
-| `pointerSize`      | `MaybeAccessor<number>`            | `0`                       | **Static.**                                         |
-| `ssr`              | `MaybeAccessor<boolean>`           | `false`                   | **Static.**                                         |
-| `width`            | `MaybeAccessor<number \| string>`  | `0`                       | **Static.** Passed to `echarts.init()`.             |
-| `height`           | `MaybeAccessor<number \| string>`  | `0`                       | **Static.** Passed to `echarts.init()`.             |
-| `autoResize`       | `MaybeAccessor<boolean>`           | `true`                    | Attaches/detaches `ResizeObserver` in place.        |
-| `resizeDebounce`   | `MaybeAccessor<number>`            | `100`                     | **Static.** Milliseconds. `0` disables debounce.    |
-| `loading`          | `MaybeAccessor<boolean>`           | `false`                   | Calls `showLoading()` / `hideLoading()`.            |
-| `loadingOptions`   | `MaybeAccessor<LoadingOptions>`    | -                         | Passed to `showLoading()`.                          |
-| `onResize`         | `() => void`                       | -                         | **Static.** Fires after a successful resize.        |
+| Prop               | Type                               | Default                   | Notes                                                                                                                            |
+| ------------------ | ---------------------------------- | ------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| `option`           | `Accessor<SolidEChartOption>`      | -                         | Reactive. Drives `setOption`. Omit for manual mode.                                                                              |
+| `theme`            | `MaybeAccessor<string \| object>`  | `'default'`               | Calls `setTheme()` in place.                                                                                                     |
+| `renderer`         | `MaybeAccessor<'canvas' \| 'svg'>` | `'canvas'`                | Triggers full reinit on change.                                                                                                  |
+| `locale`           | `MaybeAccessor<string>`            | `'EN'`                    | **Static.**                                                                                                                      |
+| `group`            | `MaybeAccessor<string>`            | -                         | Calls `echarts.connect()` in place.                                                                                              |
+| `devicePixelRatio` | `MaybeAccessor<number>`            | `window.devicePixelRatio` | **Static.**                                                                                                                      |
+| `useDirtyRect`     | `MaybeAccessor<boolean>`           | `false`                   | **Static.**                                                                                                                      |
+| `useCoarsePointer` | `MaybeAccessor<boolean>`           | `false`                   | **Static.**                                                                                                                      |
+| `pointerSize`      | `MaybeAccessor<number>`            | `0`                       | **Static.**                                                                                                                      |
+| `ssr`              | `MaybeAccessor<boolean>`           | `false`                   | **Static.**                                                                                                                      |
+| `width`            | `MaybeAccessor<number \| string>`  | `0`                       | **Static.** Passed to `echarts.init()`.                                                                                          |
+| `height`           | `MaybeAccessor<number \| string>`  | `0`                       | **Static.** Passed to `echarts.init()`.                                                                                          |
+| `autoResize`       | `MaybeAccessor<boolean>`           | `true`                    | Attaches/detaches `ResizeObserver` in place.                                                                                     |
+| `resizeDebounce`   | `MaybeAccessor<number>`            | `100`                     | **Static.** Milliseconds. `0` disables debounce.                                                                                 |
+| `initOnVisible`    | `MaybeAccessor<boolean>`           | `false`                   | **Static.** Creates the chart once its container first enters the viewport. See [Performance](./3_CONFIGURATION.md#performance). |
+| `loading`          | `MaybeAccessor<boolean>`           | `false`                   | Calls `showLoading()` / `hideLoading()`.                                                                                         |
+| `loadingOptions`   | `MaybeAccessor<LoadingOptions>`    | -                         | Passed to `showLoading()`.                                                                                                       |
+| `onResize`         | `() => void`                       | -                         | **Static.** Fires after a successful resize.                                                                                     |
 
 #### Merge strategy props
 
@@ -101,7 +102,7 @@ Provides shared configuration defaults to all descendant `<SolidEChart />` compo
 
 Accepts the shared config props only: `theme`, `renderer`, `locale`, `group`, `devicePixelRatio`,
 `useDirtyRect`, `useCoarsePointer`, `pointerSize`, `ssr`, `width`, `height`, `autoResize`,
-`resizeDebounce`, and `updateOptions`.
+`resizeDebounce`, `initOnVisible`, and `updateOptions`.
 
 - Per-chart props always win over provider values.
 - Providers can be nested; each inner provider shadows only what it explicitly declares - unset props fall through to the nearest outer provider.
@@ -159,23 +160,24 @@ createChartEffect(instance, option);
 
 **Parameters:**
 
-| Parameter               | Type                                         | Notes                                              |
-| ----------------------- | -------------------------------------------- | -------------------------------------------------- |
-| `container`             | `Accessor<HTMLElement \| null \| undefined>` | Instance created when non-null, disposed on null.  |
-| `opts.theme`            | `MaybeAccessor<EChartTheme>`                 | Reactive. Updated via `setTheme()`.                |
-| `opts.renderer`         | `MaybeAccessor<'canvas' \| 'svg'>`           | Reactive. Triggers reinit on change.               |
-| `opts.group`            | `MaybeAccessor<string>`                      | Reactive. Updated via `chart.group` + `connect()`. |
-| `opts.autoResize`       | `MaybeAccessor<boolean>`                     | Reactive. Toggles `ResizeObserver`.                |
-| `opts.locale`           | `string`                                     | Static.                                            |
-| `opts.devicePixelRatio` | `number`                                     | Static.                                            |
-| `opts.useDirtyRect`     | `boolean`                                    | Static.                                            |
-| `opts.useCoarsePointer` | `boolean`                                    | Static.                                            |
-| `opts.pointerSize`      | `number`                                     | Static.                                            |
-| `opts.ssr`              | `boolean`                                    | Static.                                            |
-| `opts.width`            | `number \| string`                           | Static.                                            |
-| `opts.height`           | `number \| string`                           | Static.                                            |
-| `opts.resizeDebounce`   | `number`                                     | Static. Default `100`.                             |
-| `opts.onResize`         | `() => void`                                 | Static. Called after `chart.resize()`.             |
+| Parameter               | Type                                         | Notes                                                                |
+| ----------------------- | -------------------------------------------- | -------------------------------------------------------------------- |
+| `container`             | `Accessor<HTMLElement \| null \| undefined>` | Instance created when non-null, disposed on null.                    |
+| `opts.theme`            | `MaybeAccessor<EChartTheme>`                 | Reactive. Updated via `setTheme()`.                                  |
+| `opts.renderer`         | `MaybeAccessor<'canvas' \| 'svg'>`           | Reactive. Triggers reinit on change.                                 |
+| `opts.group`            | `MaybeAccessor<string>`                      | Reactive. Updated via `chart.group` + `connect()`.                   |
+| `opts.autoResize`       | `MaybeAccessor<boolean>`                     | Reactive. Toggles `ResizeObserver`.                                  |
+| `opts.locale`           | `string`                                     | Static.                                                              |
+| `opts.devicePixelRatio` | `number`                                     | Static.                                                              |
+| `opts.useDirtyRect`     | `boolean`                                    | Static.                                                              |
+| `opts.useCoarsePointer` | `boolean`                                    | Static.                                                              |
+| `opts.pointerSize`      | `number`                                     | Static.                                                              |
+| `opts.ssr`              | `boolean`                                    | Static.                                                              |
+| `opts.width`            | `number \| string`                           | Static.                                                              |
+| `opts.height`           | `number \| string`                           | Static.                                                              |
+| `opts.resizeDebounce`   | `number`                                     | Static. Default `100`.                                               |
+| `opts.initOnVisible`    | `boolean`                                    | Static. Default `false`. Defers init until the container is visible. |
+| `opts.onResize`         | `() => void`                                 | Static. Called after `chart.resize()`.                               |
 
 **Returns:** `{ instance: Accessor<EChartsType | null> }`
 

@@ -21,6 +21,7 @@ import { SolidEChart } from "../../src/SolidEChart";
 import type { EChartRenderer } from "../../src/types/common";
 import type { CreateChartEffectOptions } from "../../src/types/primitives";
 import { createMockInstance } from "../mocks/echarts";
+import { MockIntersectionObserver } from "../setup";
 import {
   createMockChartWithInit,
   createSequentialMockCharts,
@@ -210,6 +211,38 @@ describe("static init-time props (locale, devicePixelRatio, useDirtyRect)", () =
       DEFAULT_THEME,
       expect.objectContaining({ useDirtyRect: true }),
     );
+  });
+});
+
+describe("initOnVisible propagation", () => {
+  beforeEach(() => {
+    MockIntersectionObserver.reset();
+  });
+
+  it("should defer init of child charts until they are visible", () => {
+    createMockChartWithInit();
+    render(() => (
+      <SolidEChartProvider initOnVisible={true}>
+        <SolidEChart style={STYLE} />
+      </SolidEChartProvider>
+    ));
+
+    expect(echartsCore.init).not.toHaveBeenCalled();
+
+    MockIntersectionObserver.instances[0]?.emit(true);
+
+    expect(echartsCore.init).toHaveBeenCalledTimes(1);
+  });
+
+  it("should allow a per-chart initOnVisible prop to override the provider", () => {
+    createMockChartWithInit();
+    render(() => (
+      <SolidEChartProvider initOnVisible={true}>
+        <SolidEChart initOnVisible={false} style={STYLE} />
+      </SolidEChartProvider>
+    ));
+
+    expect(echartsCore.init).toHaveBeenCalledTimes(1);
   });
 });
 

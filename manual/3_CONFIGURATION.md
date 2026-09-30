@@ -57,6 +57,29 @@ loops where reactive overhead is undesirable.
 
 ---
 
+### Performance
+
+**Off-screen charts.** By default every chart is created and rendered as soon as its container
+mounts, so a page with many charts does all of that work in one task. With `initOnVisible`, a chart
+is created only once its container first enters the viewport:
+
+```tsx
+<SolidEChartProvider initOnVisible>
+  <For each={charts}>{(option) => <SolidEChart option={option} style={{ height: "300px" }} />}</For>
+</SolidEChartProvider>
+```
+
+- Until then `instance()` is `null`, `onInit` has not fired and `ref` has not received the instance.
+- Visibility is reported asynchronously, so a chart that is already on screen is created shortly
+  after mount rather than during it.
+- A chart is not disposed when it scrolls out of view again, and a `renderer` change does not wait
+  for visibility a second time.
+- A container inside a hidden parent (`display: none`) is not visible; the chart is created when the
+  parent is shown.
+- Where `IntersectionObserver` is not available, the chart is created immediately.
+
+---
+
 ### SSR
 
 Pass `ssr: true` to `<SolidEChart />` or `createChart` to forward the ECharts SSR init flag. On the
@@ -102,8 +125,8 @@ the effect. Changing them after mount takes effect on
 the next natural trigger (instance or option change), not immediately.
 
 **Static props are read once.**
-`locale`, `devicePixelRatio`, `useDirtyRect`, `resizeDebounce`, `width`, `height`, `ssr`,
-`useCoarsePointer`, `pointerSize`, and `onResize` are read at `echarts.init()` time.
+`locale`, `devicePixelRatio`, `useDirtyRect`, `resizeDebounce`, `initOnVisible`, `width`, `height`,
+`ssr`, `useCoarsePointer`, `pointerSize`, and `onResize` are read at `echarts.init()` time.
 Subsequent changes - even reactive ones - have no effect.
 
 **`renderer` is the only reinit-triggering prop.**

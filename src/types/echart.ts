@@ -332,6 +332,11 @@ type SolidEChartMaybeProps = EChartsInitOpts & {
   resizeDebounce: number;
 
   /**
+   * When `true`, the chart is created only once its container first enters the viewport. Static.
+   */
+  initOnVisible: boolean;
+
+  /**
    * When `true`, shows the ECharts loading overlay. When `false`, hides it.
    */
   loading: boolean;

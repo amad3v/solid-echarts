@@ -9,7 +9,7 @@ import { DARK_THEME, DEFAULT_THEME } from "../../src/helpers/common";
 import { createChart } from "../../src/primitives/create-chart";
 import type { CreateChartOptions } from "../../src/types/primitives";
 import { createMockInstance } from "../mocks/echarts";
-import { MockResizeObserver } from "../setup";
+import { MockIntersectionObserver, MockResizeObserver } from "../setup";
 import { createMockChartWithInit } from "../utils/charts";
 import { spyOnResizeObserver } from "../utils/resize-observer";
 
@@ -748,5 +748,101 @@ describe("group synchronisation", () => {
 
     expect(connect).not.toHaveBeenCalled();
     expect(disconnect).not.toHaveBeenCalled();
+  });
+});
+
+describe("initOnVisible", () => {
+  beforeEach(() => {
+    MockIntersectionObserver.reset();
+  });
+
+  const mountWithGate = (opts?: CreateChartOptions) => {
+    const el = document.createElement("div");
+    const [container, setContainer] = createSignal<HTMLElement | null>(null);
+    const chart = createMockChartWithInit();
+    const { instance } = setupChart(container, { initOnVisible: true, ...opts });
+    setContainer(el);
+    return { el, chart, instance, setContainer };
+  };
+
+  it("should not observe visibility by default", () => {
+    const [container, setContainer] = createSignal<HTMLElement | null>(null);
+    createMockChartWithInit();
+
+    setupChart(container);
+    setContainer(document.createElement("div"));
+
+    expect(MockIntersectionObserver.instances).toHaveLength(0);
+    expect(echartsCore.init).toHaveBeenCalledTimes(1);
+  });
+
+  it("should observe the container and not init before it is visible", () => {
+    const observeSpy = vi.spyOn(MockIntersectionObserver.prototype, "observe");
+    const { el, instance } = mountWithGate();
+
+    expect(observeSpy).toHaveBeenCalledWith(el);
+    expect(echartsCore.init).not.toHaveBeenCalled();
+    expect(instance()).toBeNull();
+  });
+
+  it("should not init when the observer reports a non-intersecting entry", () => {
+    mountWithGate();
+
+    MockIntersectionObserver.instances[0]!.emit(false);
+
+    expect(echartsCore.init).not.toHaveBeenCalled();
+  });
+
+  it("should init once the container intersects and stop observing", () => {
+    const disconnectSpy = vi.spyOn(MockIntersectionObserver.prototype, "disconnect");
+    const { el, chart, instance } = mountWithGate();
+
+    MockIntersectionObserver.instances[0]!.emit(true);
+
+    expect(echartsCore.init).toHaveBeenCalledTimes(1);
+    expect(echartsCore.init).toHaveBeenCalledWith(el, DEFAULT_THEME, expect.any(Object));
+    expect(instance()).toBe(chart);
+    expect(disconnectSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it("should keep the instance when the container leaves the viewport again", () => {
+    const { chart, instance } = mountWithGate();
+    const observer = MockIntersectionObserver.instances[0]!;
+
+    observer.emit(true);
+    observer.emit(false);
+
+    expect(vi.mocked(chart.dispose)).not.toHaveBeenCalled();
+    expect(instance()).toBe(chart);
+  });
+
+  it("should reinit on renderer change without waiting for visibility again", () => {
+    const [renderer, setRenderer] = createSignal<"canvas" | "svg">("canvas");
+    mountWithGate({ renderer });
+    MockIntersectionObserver.instances[0]!.emit(true);
+
+    setRenderer("svg");
+
+    expect(echartsCore.init).toHaveBeenCalledTimes(2);
+    expect(MockIntersectionObserver.instances).toHaveLength(1);
+  });
+
+  it("should stop observing when disposed before the container became visible", () => {
+    const disconnectSpy = vi.spyOn(MockIntersectionObserver.prototype, "disconnect");
+    mountWithGate();
+
+    disposeRoot?.();
+    disposeRoot = undefined;
+
+    expect(disconnectSpy).toHaveBeenCalledTimes(1);
+    expect(echartsCore.init).not.toHaveBeenCalled();
+  });
+
+  it("should init immediately when IntersectionObserver is not available", () => {
+    vi.stubGlobal("IntersectionObserver", undefined);
+
+    mountWithGate();
+
+    expect(echartsCore.init).toHaveBeenCalledTimes(1);
   });
 });

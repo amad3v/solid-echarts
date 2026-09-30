@@ -30,6 +30,8 @@ import type { SolidEChartAPI } from "./use-chart";
  *   when the container dimensions change. Defaults to `true`.
  * - `resizeDebounce`: debounce delay in milliseconds for `autoResize`
  *   callbacks. Defaults to `100`. Set to `0` to disable debouncing.
+ * - `initOnVisible`: creates the instance only once the container first
+ *   enters the viewport. Defaults to `false`. Static.
  *
  * @internal
  */
@@ -38,6 +40,7 @@ type ChartConfig = Required<EChartsInitOpts> & {
   group: string | undefined;
   autoResize: boolean;
   resizeDebounce: number;
+  initOnVisible: boolean;
   /**
    * Provider-level defaults for `setOption` merge behaviour.
    * Accepts a static object or a reactive accessor.
@@ -58,7 +61,7 @@ type ChartConfig = Required<EChartsInitOpts> & {
  * Per-chart props always override provider values.
  *
  * Properties marked as static in {@link CreateChartOptions} (`locale`,
- * `devicePixelRatio`, `useDirtyRect`, `resizeDebounce`) are only read at
+ * `devicePixelRatio`, `useDirtyRect`, `resizeDebounce`, `initOnVisible`) are only read at
  * init time - changes after mount have no effect.
  *
  * @see {@link SolidEChartProvider} for subtree-level configuration
@@ -92,6 +95,7 @@ export type ChartConfigContextValue =
       group: string | undefined;
       autoResize: boolean;
       resizeDebounce: number;
+      initOnVisible: boolean;
       updateOptions: CreateChartEffectOptions;
     };
 
