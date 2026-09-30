@@ -90,7 +90,8 @@ const CHART_PROPS = [
  * updates the chart without unmounting the component:
  *
  * - **`option`**: calls `setOption` via {@link createChartEffect}
- * - **`theme`**: calls `setTheme` in place (ECharts 6+, no reinit)
+ * - **`theme`**: calls `setTheme` in place (ECharts 6+, no reinit), then
+ *   applies the current `option` again (`setTheme` rebuilds from the first one)
  * - **`loading`**: calls `showLoading` / `hideLoading`
  * - **`renderer`**: triggers a full dispose -> reinit cycle (the only prop that does)
  * - **`group`**: updates `chart.group` and calls `connect` in place

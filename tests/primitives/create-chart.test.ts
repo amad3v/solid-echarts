@@ -1,5 +1,5 @@
-import type { Accessor } from "solid-js";
-import { createEffect, createRoot, createSignal } from "solid-js";
+import type { Accessor, Setter } from "solid-js";
+import { batch, createEffect, createRoot, createSignal } from "solid-js";
 
 import * as echartsCore from "echarts/core";
 import { connect, disconnect, type EChartsType } from "echarts/core";
@@ -7,7 +7,9 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { DARK_THEME, DEFAULT_THEME } from "../../src/helpers/common";
 import { createChart } from "../../src/primitives/create-chart";
-import type { CreateChartOptions } from "../../src/types/primitives";
+import { createChartEffect } from "../../src/primitives/create-chart-effect";
+import type { SolidEChartOption } from "../../src/types/echart";
+import type { CreateChartEffectOptions, CreateChartOptions } from "../../src/types/primitives";
 import { createMockInstance } from "../mocks/echarts";
 import { MockIntersectionObserver, MockResizeObserver } from "../setup";
 import { createMockChartWithInit } from "../utils/charts";
@@ -264,6 +266,154 @@ describe("theme", () => {
 
     expect(vi.mocked(echartsCore.init).mock.calls[1]?.[1]).toBe(DARK_THEME);
     expect(chart2.setTheme).not.toHaveBeenCalled();
+  });
+});
+
+// ECharts' `setTheme` rebuilds the model from the first option ever set, so
+// every theme switch must be followed by the latest option.
+describe("theme switch with createChartEffect", () => {
+  const OPTION_A: SolidEChartOption = { series: [{ type: "bar", data: [1] }] };
+  const OPTION_B: SolidEChartOption = { series: [{ type: "bar", data: [2] }] };
+
+  type Harness = {
+    chart: EChartsType;
+    setTheme: Setter<string>;
+    setOption: Setter<SolidEChartOption | undefined>;
+  };
+
+  const setupThemeAndOption = (
+    theme: Accessor<string>,
+    effectOpts: CreateChartEffectOptions | undefined,
+    initialOption: SolidEChartOption | undefined,
+  ): Omit<Harness, "setTheme"> => {
+    const el = document.createElement("div");
+    const chart = createMockChartWithInit();
+    const [option, setOption] = createSignal<SolidEChartOption | undefined>(initialOption);
+
+    createRoot((dispose) => {
+      disposeRoot = dispose;
+      const { instance } = createChart(() => el, { theme });
+      createChartEffect(instance, option, effectOpts);
+    });
+
+    return { chart, setOption };
+  };
+
+  // `initialOption: null` is manual mode (no option).
+  const setup = (
+    effectOpts?: CreateChartEffectOptions,
+    initialOption: SolidEChartOption | null = OPTION_A,
+  ): Harness => {
+    const [theme, setTheme] = createSignal<string>(DEFAULT_THEME);
+    return {
+      ...setupThemeAndOption(theme, effectOpts, initialOption ?? undefined),
+      setTheme,
+    };
+  };
+
+  // Call order across both mocks: ["setTheme", "setOption", ...].
+  const callSequence = (chart: EChartsType): string[] => {
+    const calls = [
+      ...vi
+        .mocked(chart.setTheme)
+        .mock.invocationCallOrder.map((order) => ({ order, name: "setTheme" })),
+      ...vi.mocked(chart.setOption).mock.invocationCallOrder.map((order) => ({
+        order,
+        name: "setOption",
+      })),
+    ];
+    return calls.toSorted((a, b) => a.order - b.order).map(({ name }) => name);
+  };
+
+  it("should call setOption with the latest option right after setTheme", () => {
+    const { chart, setTheme, setOption } = setup();
+    setOption(OPTION_B);
+    vi.mocked(chart.setOption).mockClear();
+
+    setTheme(DARK_THEME);
+
+    expect(callSequence(chart)).toEqual(["setTheme", "setOption"]);
+    expect(chart.setOption).toHaveBeenCalledWith(OPTION_B, {
+      notMerge: false,
+      replaceMerge: [],
+      lazyUpdate: false,
+      silent: false,
+    });
+  });
+
+  it("should reapply with the update options of the option effect", () => {
+    const { chart, setTheme } = setup({ replaceMerge: ["series"], lazyUpdate: true, silent: true });
+    vi.mocked(chart.setOption).mockClear();
+
+    setTheme(DARK_THEME);
+
+    expect(chart.setOption).toHaveBeenCalledExactlyOnceWith(OPTION_A, {
+      notMerge: false,
+      replaceMerge: ["series"],
+      lazyUpdate: true,
+      silent: true,
+    });
+  });
+
+  it("should reapply with notMerge: true under autoMerge", () => {
+    const { chart, setTheme, setOption } = setup({ autoMerge: true });
+    setOption(OPTION_B);
+    vi.mocked(chart.setOption).mockClear();
+
+    setTheme(DARK_THEME);
+
+    expect(chart.setOption).toHaveBeenCalledExactlyOnceWith(OPTION_B, {
+      notMerge: true,
+      replaceMerge: undefined,
+      lazyUpdate: false,
+      silent: false,
+    });
+  });
+
+  it("should end with setOption(latest) after setTheme when the option is written first in a batch", () => {
+    const { chart, setTheme, setOption } = setup();
+    vi.mocked(chart.setOption).mockClear();
+
+    batch(() => {
+      setOption(OPTION_B);
+      setTheme(DARK_THEME);
+    });
+
+    const sequence = callSequence(chart);
+    expect(sequence.slice(sequence.indexOf("setTheme"))).toEqual(["setTheme", "setOption"]);
+    expect(chart.setOption).toHaveBeenLastCalledWith(OPTION_B, expect.any(Object));
+  });
+
+  it("should call setOption once, after setTheme, when the theme is written first in a batch", () => {
+    const { chart, setTheme, setOption } = setup();
+    vi.mocked(chart.setOption).mockClear();
+
+    batch(() => {
+      setTheme(DARK_THEME);
+      setOption(OPTION_B);
+    });
+
+    expect(callSequence(chart)).toEqual(["setTheme", "setOption"]);
+    expect(chart.setOption).toHaveBeenLastCalledWith(OPTION_B, expect.any(Object));
+  });
+
+  it("should not call setTheme or setOption when the theme accessor re-runs with the same value", () => {
+    const [settings, setSettings] = createSignal({ theme: DARK_THEME, other: 1 });
+    const { chart } = setupThemeAndOption(() => settings().theme, undefined, OPTION_A);
+    vi.mocked(chart.setOption).mockClear();
+
+    setSettings({ theme: DARK_THEME, other: 2 });
+
+    expect(chart.setTheme).not.toHaveBeenCalled();
+    expect(chart.setOption).not.toHaveBeenCalled();
+  });
+
+  it("should not call setOption after setTheme when there is no option (manual mode)", () => {
+    const { chart, setTheme } = setup(undefined, null);
+    setTheme(DARK_THEME);
+
+    expect(chart.setTheme).toHaveBeenCalledExactlyOnceWith(DARK_THEME);
+    expect(chart.setOption).not.toHaveBeenCalled();
   });
 });
 

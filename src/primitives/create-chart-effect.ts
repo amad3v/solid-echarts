@@ -1,5 +1,6 @@
 import { createEffect, on, untrack, type Accessor } from "solid-js";
 
+import { readThemeRevision } from "@primitive/theme-revision";
 import type { SolidEChartOption } from "@type/echart";
 import type { OptionSignature } from "@type/merge-plan";
 import type { CreateChartEffectOptions } from "@type/primitives";
@@ -9,17 +10,22 @@ import type { EChartsType, SetOptionOpts } from "echarts/core";
 
 /**
  * Reactive `setOption` bridge - calls `chart.setOption` whenever `instance`
- * or `option` changes.
+ * or `option` changes, and after every theme switch made by {@link createChart}.
  *
  * @remarks
  *
- * Both `instance` and `option` are explicit tracked dependencies via `on()`:
+ * `instance`, `option` and the instance's theme revision are explicit tracked
+ * dependencies via `on()`:
  *
  * - **`option` changes**: calls `setOption` with the new option on the
  *   current instance. The normal reactive update path.
  * - **`instance` changes**: fires on both transitions of a reinit cycle:
  *   `chart -> null` (early return, no call on a disposed instance) and
  *   `null -> newChart` (applies the current option to the fresh instance).
+ * - **theme switches**: ECharts' `setTheme` rebuilds the chart from the first
+ *   option set on the instance, so the latest option is applied again with
+ *   the same merge options. Only for instances created by {@link createChart},
+ *   which records a revision per `setTheme`.
  *
  * **`autoMerge` mode**
  *
@@ -32,6 +38,8 @@ import type { EChartsType, SetOptionOpts } from "echarts/core";
  * Note: on instance reinit the signature is reset so the first `setOption`
  * on the new instance always uses `notMerge: false`.
  * A fresh instance has no previous state to diff against.
+ * After a theme switch the option is applied with `notMerge: true`: the model
+ * then holds an earlier option, not the one the signature describes.
  *
  * When `autoMerge: false` (default), merge strategy params (`notMerge`,
  * `replaceMerge`, `lazyUpdate`, `silent`) are read with `untrack`, they
@@ -87,13 +95,25 @@ export const createChartEffect = (
   // always starts without a previous signature to diff against.
   let lastSignature: OptionSignature | null = null;
 
+  // Theme revision seen on the previous run. A different value means
+  // `setTheme` has rebuilt the model from an earlier option since then.
+  let lastThemeRevision: number | undefined;
+
+  const trackThemeRevision = (): number | undefined => {
+    const chart = instance();
+    return chart ? readThemeRevision(chart) : undefined;
+  };
+
   // Explicit dependency tracking via `on` prevents accidental signal reads
   // inside the callback from becoming unintended dependencies.
   // `defer: false`: the first run applies the initial option to the instance.
   createEffect(
     on(
-      [instance, option],
-      ([chart, currentOption]) => {
+      [instance, option, trackThemeRevision],
+      ([chart, currentOption, themeRevision]) => {
+        const themeSwitched = themeRevision !== lastThemeRevision;
+        lastThemeRevision = themeRevision;
+
         // Skip when option is undefined, happens when the component is
         // used in manual mode (no option prop) and `createChartEffect` is wired
         // unconditionally. The effect will re-run when option becomes defined.
@@ -110,7 +130,14 @@ export const createChartEffect = (
           // When instance is a new chart (reinit), `lastSignature` was reset
           // to null on the previous cleanup, `optionMergePlan` treats null as first
           // render and returns `notMerge: false`, for a fresh instance with no prior state.
-          const plan = optionMergePlan(lastSignature, currentOption);
+          //
+          // After a theme switch the model holds an earlier option, so there
+          // is nothing to diff against: replace in full. (`lastSignature` is
+          // null on a fresh instance, where a plain first render is correct.)
+          const plan =
+            themeSwitched && lastSignature !== null
+              ? { ...optionMergePlan(null, currentOption), notMerge: true }
+              : optionMergePlan(lastSignature, currentOption);
           const opts = {
             notMerge: plan.notMerge,
             replaceMerge: plan.replaceMerge.length > 0 ? plan.replaceMerge : undefined,

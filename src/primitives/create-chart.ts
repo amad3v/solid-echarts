@@ -1,6 +1,8 @@
 import type { Accessor } from "solid-js";
 import { createEffect, createSignal, on, onCleanup, untrack } from "solid-js";
 
+import { registerThemeRevision } from "@primitive/theme-revision";
+import type { EChartTheme } from "@type/common";
 import type { CreateChartOptions, CreateChartResult } from "@type/primitives";
 import { DEFAULT_THEME, toAccessor } from "@utils/common";
 import { debounce } from "@utils/primitives";
@@ -20,6 +22,8 @@ import { connect } from "echarts/core";
  *   With `initOnVisible`, the first init waits until the container enters
  *   the viewport.
  * - **Theme** - applies via `setTheme` in place (ECharts 6+). No reinit.
+ *   `setTheme` rebuilds the chart from the first option it was given, so
+ *   {@link createChartEffect} reapplies the latest option after every switch.
  * - **Group** - updates `chart.group` and calls `connect` in place.
  * - **Resize** - attaches a debounced `ResizeObserver`. Toggles reactively
  *   without touching the instance.
@@ -88,6 +92,12 @@ export const createChart = (
 
   const [instance, setInstance] = createSignal<EChartsType | null>(null);
   const [prevGroup, setPrevGroup] = createSignal<string | undefined>();
+  // Bumped after every `setTheme`; `createChartEffect` tracks it (via
+  // `readThemeRevision`) to reapply the latest option. See `theme-revision.ts`.
+  const [themeRevision, setThemeRevision] = createSignal(0);
+  // The theme the current instance shows, so an unchanged value (a theme
+  // accessor re-running with the same result) does not call `setTheme`.
+  let appliedTheme: EChartTheme;
 
   // Visibility gate (`initOnVisible`)
   // Open from the start unless deferral is requested and the browser can
@@ -154,7 +164,9 @@ export const createChart = (
         // already renders with the correct palette.
         // Untracked - theme effect owns all subsequent updates.
         const initialTheme = untrack(theme);
-        const chart = echarts.init(element, initialTheme ?? DEFAULT_THEME, initOptions);
+        appliedTheme = initialTheme ?? DEFAULT_THEME;
+        const chart = echarts.init(element, appliedTheme, initOptions);
+        registerThemeRevision(chart, themeRevision);
 
         // Apply group before `setInstance` without tracking.
         // group effect owns all subsequent updates.
@@ -196,21 +208,25 @@ export const createChart = (
   // `setTheme` updates in place, no reinit required.
   // Tracks `theme` only. Every instance is created with the current theme by
   // the core effect, so a new instance (late container, renderer reinit) needs
-  // no `setTheme`; `instance` is read untracked for that reason.
-  // `defer: true` skips the initial value, which `init` has applied or will apply.
-  // A change made while there is no instance is picked up by the next `init`.
+  // no `setTheme`; `instance` is read untracked for that reason. The initial
+  // value, and a change made while there is no instance, go through `init`
+  // and are skipped here as equal to `appliedTheme`.
+  //
+  // ECharts' `setTheme` rebuilds the model from the first option set on the
+  // instance, not the current one. Bumping the revision makes
+  // `createChartEffect` reapply the latest option afterwards, whichever of
+  // the two effects runs first when theme and option change together.
   createEffect(
-    on(
-      theme,
-      (themeValue) => {
-        const chart = instance();
-        if (!chart || chart.isDisposed()) return;
+    on(theme, (themeValue) => {
+      if (themeValue === undefined || themeValue === appliedTheme) return;
 
-        if (themeValue === undefined) return;
-        chart.setTheme(themeValue);
-      },
-      { defer: true },
-    ),
+      const chart = instance();
+      if (!chart || chart.isDisposed()) return;
+
+      chart.setTheme(themeValue);
+      appliedTheme = themeValue;
+      setThemeRevision((revision) => revision + 1);
+    }),
   );
 
   // Group effect

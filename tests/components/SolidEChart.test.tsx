@@ -392,6 +392,23 @@ describe("theme prop", () => {
     expect(vi.mocked(chart.dispose)).not.toHaveBeenCalled();
   });
 
+  it("should reapply the latest option after setTheme", () => {
+    const chart = createMockChartWithInit();
+    const [theme, setTheme] = createSignal(DEFAULT_THEME);
+    const [option, setOption] = createSignal<EChartsOption>({ series: [{ data: [1] }] });
+    const latest: EChartsOption = { series: [{ data: [2] }] };
+    render(() => <SolidEChart option={option} theme={theme()} style={STYLE} />);
+
+    setOption(latest);
+    vi.mocked(chart.setOption).mockClear();
+    setTheme(DARK_THEME);
+
+    expect(vi.mocked(chart.setOption)).toHaveBeenCalledExactlyOnceWith(latest, expect.any(Object));
+    const [setThemeOrder] = vi.mocked(chart.setTheme).mock.invocationCallOrder;
+    const [setOptionOrder] = vi.mocked(chart.setOption).mock.invocationCallOrder;
+    expect(setOptionOrder).toBeGreaterThan(setThemeOrder ?? Infinity);
+  });
+
   it("should accept an inline object theme", () => {
     createMockChartWithInit();
     const themeObj = { backgroundColor: "#333333" };

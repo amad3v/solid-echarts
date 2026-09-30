@@ -21,7 +21,9 @@ type CreateChartMaybeOptions = {
   renderer: EChartRenderer;
 
   /**
-   * Theme name or inline theme object. Updated in place via `setTheme`
+   * Theme name or inline theme object. Updated in place via `setTheme`.
+   * ECharts then rebuilds the chart from the first option set on the
+   * instance; {@link createChartEffect} applies the latest option again.
    */
   theme: EChartTheme | undefined;
 
@@ -51,7 +53,7 @@ type CreateChartMaybeOptions = {
  *
  * **Reactive - updated in place after mount:**
  * - `renderer` - reinits the instance (only option that does)
- * - `theme` - calls `setTheme`
+ * - `theme` - calls `setTheme`; {@link createChartEffect} then applies the latest option again
  * - `group` - updates `chart.group` and calls `connect`
  * - `autoResize` - attaches or detaches the `ResizeObserver`
  *
