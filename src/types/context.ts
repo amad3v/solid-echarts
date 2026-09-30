@@ -78,19 +78,10 @@ export type SolidEChartConfig = Partial<WithMaybeAccessor<ChartConfig>>;
 export type ChartConfigContextValue =
   // fields that have real defaults are required
   Required<
-    Pick<
-      EChartsInitOpts,
-      | "renderer"
-      | "locale"
-      | "devicePixelRatio"
-      | "useDirtyRect"
-      | "useCoarsePointer"
-      | "pointerSize"
-      | "ssr"
-    >
+    Pick<EChartsInitOpts, "renderer" | "locale" | "devicePixelRatio" | "useDirtyRect" | "ssr">
   > &
-    // fields that have no sensible default remain optional
-    Pick<EChartsInitOpts, "width" | "height"> & {
+    // fields left to ECharts' own defaults remain optional
+    Pick<EChartsInitOpts, "width" | "height" | "useCoarsePointer" | "pointerSize"> & {
       theme: EChartTheme | undefined;
       group: string | undefined;
       autoResize: boolean;

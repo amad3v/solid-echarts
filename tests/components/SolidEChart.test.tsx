@@ -73,6 +73,32 @@ describe("mount and init", () => {
     );
   });
 
+  it("should leave useCoarsePointer and pointerSize to the ECharts defaults when not set", () => {
+    render(() => <SolidEChart style={STYLE} />);
+
+    const initOptions = vi.mocked(echartsCore.init).mock.calls[0]?.[2];
+    expect(initOptions?.useCoarsePointer).toBeUndefined();
+    expect(initOptions?.pointerSize).toBeUndefined();
+  });
+
+  it("should pass useCoarsePointer without forcing a pointerSize", () => {
+    render(() => <SolidEChart useCoarsePointer={true} style={STYLE} />);
+
+    const initOptions = vi.mocked(echartsCore.init).mock.calls[0]?.[2];
+    expect(initOptions?.useCoarsePointer).toBe(true);
+    expect(initOptions?.pointerSize).toBeUndefined();
+  });
+
+  it("should pass pointerSize to echarts.init when set", () => {
+    render(() => <SolidEChart pointerSize={20} style={STYLE} />);
+
+    expect(echartsCore.init).toHaveBeenCalledWith(
+      expect.any(HTMLElement),
+      DEFAULT_THEME,
+      expect.objectContaining({ pointerSize: 20 }),
+    );
+  });
+
   it("should render a container div in the document", () => {
     const { container } = render(() => <SolidEChart style={STYLE} />);
     expect(container.querySelector("div")).toBeInstanceOf(HTMLDivElement);

@@ -187,9 +187,9 @@ export const SolidEChart: ParentComponent<SolidEChartProps> = (props) => {
   const resolvedLocale = resolveConfigProp<string>("locale");
   const resolvedDevicePixelRatio = resolveConfigProp<number>("devicePixelRatio");
   const resolvedUseDirtyRect = resolveConfigProp<boolean>("useDirtyRect");
-  const resolvedUseCoarsePointer = resolveConfigProp<boolean>("useCoarsePointer");
+  const resolvedUseCoarsePointer = resolveConfigProp<boolean | undefined>("useCoarsePointer");
   const resolvedSSR = resolveConfigProp<boolean>("ssr");
-  const resolvedPointerSize = resolveConfigProp<number>("pointerSize");
+  const resolvedPointerSize = resolveConfigProp<number | undefined>("pointerSize");
   const resolvedHeight = resolveConfigProp<number | string>("height");
   const resolvedWidth = resolveConfigProp<number | string>("width");
   const resolvedResizeDebounce = resolveConfigProp<number>("resizeDebounce");

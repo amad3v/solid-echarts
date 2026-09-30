@@ -18,8 +18,10 @@ const defaultConfigContextValue: SolidEChartConfigContextValue = {
   group: () => undefined,
   devicePixelRatio: () => (typeof window === "undefined" ? 1 : window.devicePixelRatio),
   useDirtyRect: () => false,
-  useCoarsePointer: () => false,
-  pointerSize: () => 0,
+  // Left unset so ECharts applies its own defaults: coarse pointer on touch
+  // devices ('auto') with a 44px pointer size.
+  useCoarsePointer: () => undefined,
+  pointerSize: () => undefined,
   ssr: () => false,
   width: () => undefined,
   height: () => undefined,
