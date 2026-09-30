@@ -4,7 +4,7 @@
 [![Solid](https://img.shields.io/badge/SolidJS-1.9-2C4F7C?style=for-the-badge&logo=solid&logoColor=2C4F7C&labelColor=cbd5e1)](https://www.solidjs.com/)
 [![ECharts](https://img.shields.io/badge/ECharts-6-AA344D?style=for-the-badge&logo=apacheecharts&logoColor=AA344D&labelColor=cbd5e1)](https://echarts.apache.org/en/index.html)
 [![TypeScript](https://img.shields.io/badge/TypeScript-6-3178C6?style=for-the-badge&logo=typescript&logoColor=3178C6&labelColor=cbd5e1)](https://www.typescriptlang.org/)
-[![npm version](https://img.shields.io/npm/v/%40amad3v%2Fsolid-echarts?style=for-the-badge&labelColor=cbd5e1)](https://www.npmjs.com/package/@amad3v/solid-chart)
+[![npm version](https://img.shields.io/npm/v/%40amad3v%2Fsolid-echarts?style=for-the-badge&labelColor=cbd5e1)](https://www.npmjs.com/package/@amad3v/solid-echarts)
 ![coverage](https://img.shields.io/badge/coverage-94%25-ea580c?style=for-the-badge&labelColor=cbd5e1)
 [![license](https://img.shields.io/badge/license-MIT-A31F34?style=for-the-badge&labelColor=cbd5e1)](https://mit-license.org/)
 
@@ -59,7 +59,7 @@ import {
   GridComponent,
   TooltipComponent,
   CanvasRenderer,
-} from "solid-echarts";
+} from "@amad3v/solid-echarts";
 
 seSetup([BarChart, LineChart, GridComponent, TooltipComponent, CanvasRenderer]);
 ```
@@ -89,9 +89,9 @@ const option = () => ({
 
 ### Manual
 
-- [Core Concepts](https://codeberg.org/amad3v/solid-echarts/src/commit/4803bc21f97209f52ad9da1cc19f3e9d0467ff10/manual/1_CORE_CONCEPTS.md)
-- [API Summary](https://codeberg.org/amad3v/solid-echarts/src/commit/4803bc21f97209f52ad9da1cc19f3e9d0467ff10/manual/2_API_SUMMARY.md)
-- [Configuration](https://codeberg.org/amad3v/solid-echarts/src/commit/4803bc21f97209f52ad9da1cc19f3e9d0467ff10/manual/3_CONFIGURATION.md)
+- [Core Concepts](https://codeberg.org/amad3v/solid-echarts/src/branch/main/manual/1_CORE_CONCEPTS.md)
+- [API Summary](https://codeberg.org/amad3v/solid-echarts/src/branch/main/manual/2_API_SUMMARY.md)
+- [Configuration](https://codeberg.org/amad3v/solid-echarts/src/branch/main/manual/3_CONFIGURATION.md)
 
 ## License
 

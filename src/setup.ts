@@ -21,7 +21,7 @@ import { use } from "echarts/core";
  *   GridComponent,
  *   TooltipComponent,
  *   CanvasRenderer,
- * } from 'solid-echarts';
+ * } from '@amad3v/solid-echarts';
  *
  * seSetup([BarChart, LineChart, GridComponent, TooltipComponent, CanvasRenderer]);
  * ```

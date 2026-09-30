@@ -37,7 +37,8 @@ Assign the same `group` to multiple charts:
 </SolidEChartProvider>
 ```
 
-`echarts.connect(groupId)` is called automatically. `echarts.disconnect(groupId)` is called on cleanup.
+`echarts.connect(groupId)` is called automatically. On cleanup the chart leaves its group before it
+is disposed; `echarts.disconnect(groupId)` is not called, since other charts may still use the group.
 
 Alternatively manage groups imperatively via the re-exported `connect` and `disconnect` from `echarts/core`.
 
@@ -120,7 +121,7 @@ import {
   disconnect,
   graphic,
   color,
-} from "solid-echarts";
+} from "@amad3v/solid-echarts";
 ```
 
 All chart types, components, and renderers are re-exported via `echarts/charts`,
