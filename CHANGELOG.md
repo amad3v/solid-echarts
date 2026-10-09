@@ -5,6 +5,33 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.0] - 2026-10-09
+
+### Added
+
+- `seActions.treeExpandAndCollapse` and `seActions.dragNode`, with the payload types
+  `TreeExpandAndCollapsePayload` and `DragNodePayload`. `dragNode` is a sankey action; its `localX`
+  / `localY` are fractions of the layout size.
+- `debounce(...)` returns a function with `cancel()` to drop a pending call. New exported type
+  `Debounced`.
+- `createChart` accepts the `echarts.init` options and `resizeDebounce` as accessors as well as
+  plain values.
+
+### Changed
+
+- A new chart instance (after a `renderer` change, or the delayed one from `initOnVisible`) is
+  created with the current init-time props (`locale`, `devicePixelRatio`, `useDirtyRect`,
+  `useCoarsePointer`, `pointerSize`, `ssr`, `width`, `height`) instead of the values read at mount.
+  Changing one of them still does not recreate the chart. `resizeDebounce` is read when the resize
+  observer is attached.
+- `debounce` is typed from the callback's parameters, so callbacks with typed parameters
+  (`(value: number) => void`) are accepted. Code passing an explicit type argument
+  (`debounce<Fn>(...)`) must drop it or pass the parameter tuple instead.
+- A pending debounced resize is cancelled when the chart is disposed or `autoResize` is turned off.
+- Documentation: `updateOptions` precedence in the type docs, `lazyUpdate` frame behaviour, which
+  events the legend actions fire, and the `triggerEvent` series option needed for `selfType` on line
+  series.
+
 ## [1.1.2] - 2026-10-09
 
 ### Fixed
@@ -105,6 +132,7 @@ Version 1.0.1 was not published.
 
 Initial release.
 
+[1.2.0]: https://codeberg.org/amad3v/solid-echarts/compare/v1.1.2...v1.2.0
 [1.1.2]: https://codeberg.org/amad3v/solid-echarts/compare/v1.1.1...v1.1.2
 [1.1.1]: https://codeberg.org/amad3v/solid-echarts/compare/v1.1.0...v1.1.1
 [1.1.0]: https://codeberg.org/amad3v/solid-echarts/compare/v1.0.3...v1.1.0
