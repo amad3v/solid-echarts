@@ -89,9 +89,9 @@ const option = () => ({
 
 ### Manual
 
-- [Core Concepts](https://codeberg.org/amad3v/solid-echarts/src/branch/main/manual/1_CORE_CONCEPTS.md)
-- [API Summary](https://codeberg.org/amad3v/solid-echarts/src/branch/main/manual/2_API_SUMMARY.md)
-- [Configuration](https://codeberg.org/amad3v/solid-echarts/src/branch/main/manual/3_CONFIGURATION.md)
+- [Core Concepts](https://codeberg.org/amad3v/solid-echarts/src/tag/v1.2.0/manual/1_CORE_CONCEPTS.md)
+- [API Summary](https://codeberg.org/amad3v/solid-echarts/src/tag/v1.2.0/manual/2_API_SUMMARY.md)
+- [Configuration](https://codeberg.org/amad3v/solid-echarts/src/tag/v1.2.0/manual/3_CONFIGURATION.md)
 
 ## License
 
