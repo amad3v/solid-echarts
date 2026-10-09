@@ -5,7 +5,7 @@
 [![ECharts](https://img.shields.io/badge/ECharts-6-AA344D?style=for-the-badge&logo=apacheecharts&logoColor=AA344D&labelColor=cbd5e1)](https://echarts.apache.org/en/index.html)
 [![TypeScript](https://img.shields.io/badge/TypeScript-6-3178C6?style=for-the-badge&logo=typescript&logoColor=3178C6&labelColor=cbd5e1)](https://www.typescriptlang.org/)
 [![npm version](https://img.shields.io/npm/v/%40amad3v%2Fsolid-echarts?style=for-the-badge&labelColor=cbd5e1)](https://www.npmjs.com/package/@amad3v/solid-echarts)
-![coverage](https://img.shields.io/badge/coverage-94%25-ea580c?style=for-the-badge&labelColor=cbd5e1)
+![coverage](https://img.shields.io/badge/coverage-95%25-ea580c?style=for-the-badge&labelColor=cbd5e1)
 [![license](https://img.shields.io/badge/license-MIT-A31F34?style=for-the-badge&labelColor=cbd5e1)](https://mit-license.org/)
 
 ---
