@@ -144,7 +144,8 @@ Methods managed by the library (`setOption`, `setTheme`, `showLoading`, `resize`
 `dispatchAction`, `dispose`) are intentionally excluded from `SolidEChartAPI`.
 
 Called outside a `<SolidEChart />` tree: `instance()` returns `null`, `dispatch` is a no-op,
-`chart` methods return `undefined`. `isDisposed()` returns `true` in that state.
+`chart` methods return `undefined`. `isDisposed()` returns `true` in that state, and `false` for a
+live instance.
 
 ### `createChart(container, opts?)`
 

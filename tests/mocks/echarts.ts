@@ -12,7 +12,9 @@ export const createMockZr = (): ZRenderInstance =>
   }) as unknown as ZRenderInstance;
 
 export const createMockInstance = (overrides: Partial<EChartsType> = {}): EChartsType => {
-  const disposed = { value: false };
+  // ECharts never initialises `_disposed`: `isDisposed()` returns `undefined`
+  // on a live instance and `true` after `dispose()`.
+  const disposed: { value: true | undefined } = { value: undefined };
   return {
     setOption: vi.fn(),
     setTheme: vi.fn(),

@@ -1012,6 +1012,68 @@ describe("useChart() inside SolidEChart tree", () => {
   });
 });
 
+describe("useChart() chart proxy", () => {
+  it("should report isDisposed() === false for a live instance and true after dispose", () => {
+    const chart = createMockChartWithInit();
+    let proxy: ReturnType<typeof useChart>["chart"] | undefined;
+
+    const Child = () => {
+      proxy = useChart().chart;
+      return <></>;
+    };
+
+    const { unmount } = render(() => (
+      <SolidEChart style={STYLE}>
+        <Child />
+      </SolidEChart>
+    ));
+
+    // ECharts returns `undefined` from `isDisposed()` on a live instance
+    expect(chart.isDisposed()).toBeUndefined();
+    expect(proxy?.isDisposed()).toBe(false);
+
+    unmount();
+
+    expect(proxy?.isDisposed()).toBe(true);
+  });
+
+  it("should report isDisposed() === true when there is no instance", () => {
+    let proxy: ReturnType<typeof useChart>["chart"] | undefined;
+
+    const Standalone = () => {
+      proxy = useChart().chart;
+      return <></>;
+    };
+
+    render(() => <Standalone />);
+
+    expect(proxy?.isDisposed()).toBe(true);
+  });
+
+  it("should default getConnectedDataURL() options to an empty object", () => {
+    const getConnectedDataURL = vi.fn(() => "data:");
+    vi.mocked(echartsCore.init).mockReturnValue(
+      createMockInstance({ getConnectedDataURL } as Partial<EChartsType>),
+    );
+    let proxy: ReturnType<typeof useChart>["chart"] | undefined;
+
+    const Child = () => {
+      proxy = useChart().chart;
+      return <></>;
+    };
+
+    render(() => (
+      <SolidEChart style={STYLE}>
+        <Child />
+      </SolidEChart>
+    ));
+
+    proxy?.getConnectedDataURL();
+
+    expect(getConnectedDataURL).toHaveBeenCalledWith({});
+  });
+});
+
 describe("initOnVisible prop", () => {
   it("should apply the option and fire onInit only once the container is visible", () => {
     MockIntersectionObserver.reset();

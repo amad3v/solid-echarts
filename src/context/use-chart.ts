@@ -109,10 +109,16 @@ export const useChart = (): UseChart => {
     getDevicePixelRatio: () => instance()?.getDevicePixelRatio(),
     getDom: () => instance()?.getDom(),
     getOption: () => instance()?.getOption(),
-    isDisposed: () => instance()?.isDisposed() ?? true,
+    // ECharts leaves `_disposed` unset until `dispose()`, so a live instance
+    // returns `undefined`. Only a missing instance counts as disposed.
+    isDisposed: () => {
+      const c = instance();
+      return c === null || Boolean(c.isDisposed());
+    },
     isSSR: () => instance()?.isSSR() ?? false,
     getDataURL: (opts) => instance()?.getDataURL(opts),
-    getConnectedDataURL: (opts) => instance()?.getConnectedDataURL(opts),
+    // ECharts reads `opts.type` without a guard, so default to an empty object
+    getConnectedDataURL: (opts = {}) => instance()?.getConnectedDataURL(opts),
     renderToSVGString: (opts) => instance()?.renderToSVGString(opts),
     renderToCanvas: (opts) => instance()?.renderToCanvas(opts),
     convertToPixel: (finder, value) => instance()?.convertToPixel(finder, value),
