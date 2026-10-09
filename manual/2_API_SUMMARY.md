@@ -106,6 +106,7 @@ Accepts the shared config props only: `theme`, `renderer`, `locale`, `group`, `d
 
 - Per-chart props always win over provider values.
 - Providers can be nested; each inner provider shadows only what it explicitly declares - unset props fall through to the nearest outer provider.
+- A prop counts as unset when it resolves to `undefined`, in any form: omitted, `theme={theme()}`, or an accessor `theme={theme}` whose value is `undefined`.
 - All props accept `MaybeAccessor<T>`.
 
 ```tsx

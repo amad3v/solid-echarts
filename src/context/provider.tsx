@@ -75,8 +75,11 @@ const configValueKeys = [
 export const SolidEChartProvider: ParentComponent<SolidEChartConfig> = (props) => {
   const parentConfig = useContext(SolidEChartsConfigContext);
 
-  const setConfigValue = <T,>(key: keyof SolidEChartConfig): T =>
-    (props[key] === undefined ? parentConfig[key]() : resolveMaybeAccessor(props[key])) as T;
+  // Resolve first, so an accessor returning `undefined` also falls back
+  const setConfigValue = <T,>(key: keyof SolidEChartConfig): T => {
+    const value = resolveMaybeAccessor(props[key]);
+    return (value === undefined ? parentConfig[key]() : value) as T;
+  };
 
   // Each accessor is a lazy lambda that reads props at call time, not at
   // construction time. This is what keeps all three usage patterns reactive.
@@ -85,9 +88,9 @@ export const SolidEChartProvider: ParentComponent<SolidEChartConfig> = (props) =
   //   `toAccessor(props.theme)`    - evaluates `props.theme` once, freezes the value
   //   `() => resolve(props.theme)` - reads through SolidJS reactive proxy every call
   //
-  // Unset props fall back to the nearest parent context value, making
-  // provider nesting work transparently - inner providers shadow only
-  // what they explicitly declare.
+  // Unset props (and accessors returning `undefined`) fall back to the
+  // nearest parent context value, making provider nesting work
+  // transparently - inner providers shadow only what they explicitly declare.
   const configValue = configValueKeys.reduce((acc, v) => {
     acc[v] = () => setConfigValue(v);
     return acc;

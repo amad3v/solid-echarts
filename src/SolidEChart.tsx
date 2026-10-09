@@ -164,7 +164,7 @@ export const SolidEChart: ParentComponent<SolidEChartProps> = (props) => {
   const [containerElement, setContainerElement] = createSignal<HTMLDivElement | null>(null);
 
   // Build merged config: context value is the fallback,
-  // component prop wins when explicitly set.
+  // component prop wins when it resolves to a value (not `undefined`).
   // Each resolver is a lazy accessor that reads the prop through SolidJS's
   // reactive proxy at call time, not at construction time. This keeps all
   // three usage patterns reactive:
@@ -174,8 +174,9 @@ export const SolidEChart: ParentComponent<SolidEChartProps> = (props) => {
   const resolveConfigProp =
     <T,>(key: keyof ChartConfigContextValue): Accessor<T> =>
     () => {
-      const value = chartProps[key];
-      return (value === undefined ? configContext[key]() : resolveMaybeAccessor(value)) as T;
+      // Resolve first, so an accessor returning `undefined` also falls back
+      const value = resolveMaybeAccessor(chartProps[key]);
+      return (value === undefined ? configContext[key]() : value) as T;
     };
 
   // The four props `createChart` tracks are memoised: `theme={settings().theme}`

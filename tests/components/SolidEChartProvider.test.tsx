@@ -246,6 +246,65 @@ describe("initOnVisible propagation", () => {
   });
 });
 
+describe("accessor props returning undefined", () => {
+  it("should fall back to the provider theme when a theme accessor returns undefined", () => {
+    const chart = createMockChartWithInit();
+    const [chartTheme, setChartTheme] = createSignal<string | undefined>("custom");
+    render(() => (
+      <SolidEChartProvider theme={DARK_THEME}>
+        <SolidEChart theme={chartTheme} style={STYLE} />
+      </SolidEChartProvider>
+    ));
+
+    expect(getInitThemes()).toEqual(["custom"]);
+
+    setChartTheme(undefined);
+
+    expect(vi.mocked(chart.setTheme)).toHaveBeenLastCalledWith(DARK_THEME);
+  });
+
+  it("should use the provider theme at init when a theme accessor returns undefined", () => {
+    createMockChartWithInit();
+    render(() => (
+      <SolidEChartProvider theme={DARK_THEME}>
+        <SolidEChart theme={() => undefined} style={STYLE} />
+      </SolidEChartProvider>
+    ));
+
+    expect(getInitThemes()).toEqual([DARK_THEME]);
+  });
+
+  it("should fall back to the provider group when a group accessor returns undefined", () => {
+    const chart = createMockChartWithInit();
+    const [chartGroup, setChartGroup] = createSignal<string | undefined>("sidebar");
+    render(() => (
+      <SolidEChartProvider group={"dashboard"}>
+        <SolidEChart group={chartGroup} style={STYLE} />
+      </SolidEChartProvider>
+    ));
+
+    expect(chart.group).toBe("sidebar");
+
+    setChartGroup(undefined);
+
+    expect(chart.group).toBe("dashboard");
+    expect(echartsCore.connect).toHaveBeenLastCalledWith("dashboard");
+  });
+
+  it("should fall back to the outer provider when an inner provider accessor returns undefined", () => {
+    createMockChartWithInit();
+    render(() => (
+      <SolidEChartProvider theme={DARK_THEME}>
+        <SolidEChartProvider theme={() => undefined}>
+          <SolidEChart style={STYLE} />
+        </SolidEChartProvider>
+      </SolidEChartProvider>
+    ));
+
+    expect(getInitThemes()).toEqual([DARK_THEME]);
+  });
+});
+
 describe("group propagation", () => {
   it("should propagate a group to child charts and call connect()", () => {
     render(() => (
