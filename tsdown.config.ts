@@ -10,11 +10,7 @@ export default defineConfig([
   },
   {
     platform: "neutral",
-    inputOptions: {
-      transform: {
-        jsx: "preserve",
-      },
-    },
+    // no plugin: JSX is kept as-is through `compilerOptions.jsx: "preserve"` in `tsconfig.json`
     outExtensions: () => ({ js: ".jsx" }),
   },
 ]);
