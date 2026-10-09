@@ -134,6 +134,15 @@ export const createChart = (
   );
 
   let resizeObserver: ResizeObserver | null = null;
+  // Drops a pending debounced resize when the observer is detached.
+  let cancelPendingResize: (() => void) | undefined;
+
+  const detachResizeObserver = (): void => {
+    resizeObserver?.disconnect();
+    resizeObserver = null;
+    cancelPendingResize?.();
+    cancelPendingResize = undefined;
+  };
   // Tracks the last successfully connected group id so we can disconnect when it changes.
   // Stored outside effects to avoid extra Solid state.
   // let prevGroup: string | undefined = undefined;
@@ -186,8 +195,7 @@ export const createChart = (
         }
 
         onCleanup(() => {
-          resizeObserver?.disconnect();
-          resizeObserver = null;
+          detachResizeObserver();
 
           if (!chart.isDisposed()) {
             chart.group = "";
@@ -257,8 +265,7 @@ export const createChart = (
       if (shouldResize && !resizeObserver) {
         attachResizeObserver(chart, element);
       } else if (!shouldResize && resizeObserver) {
-        resizeObserver.disconnect();
-        resizeObserver = null;
+        detachResizeObserver();
       }
     }),
   );
@@ -307,7 +314,12 @@ export const createChart = (
     };
 
     const debounceMs = untrack(() => resolveMaybeAccessor(opts.resizeDebounce)) ?? 100;
-    const debouncedResize = debounceMs > 0 ? debounce(handleResize, debounceMs) : handleResize;
+    let debouncedResize = handleResize;
+    if (debounceMs > 0) {
+      const debounced = debounce(handleResize, debounceMs);
+      cancelPendingResize = debounced.cancel;
+      debouncedResize = debounced;
+    }
 
     resizeObserver = new ResizeObserver(debouncedResize);
     resizeObserver.observe(element);

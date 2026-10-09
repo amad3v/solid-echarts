@@ -37,6 +37,7 @@ export type {
   CreateChartEffectOptions,
   CreateChartOptions,
   CreateChartResult,
+  Debounced,
 } from "@type/primitives";
 export type { Setup, SetupExtensions } from "@type/setup";
 export type { SolidEChartAPI } from "@type/use-chart";

@@ -1,5 +1,6 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, expectTypeOf, it, vi } from "vitest";
 
+import type { Debounced } from "../../src";
 import { debounce } from "../../src/helpers/primitives";
 
 let timer: ReturnType<typeof vi.useFakeTimers>;
@@ -223,5 +224,40 @@ describe("debounce", () => {
     expect(fn).not.toHaveBeenCalled();
     vi.advanceTimersByTime(1);
     expect(fn).toHaveBeenCalledTimes(1);
+  });
+
+  it("should accept callbacks with typed parameters and keep them", () => {
+    const typed = vi.fn((_value: number, _label: string): void => {});
+    const debounced = debounce(typed, 10);
+
+    expectTypeOf(debounced).toEqualTypeOf<Debounced<[number, string]>>();
+    expectTypeOf(debounced).parameters.toEqualTypeOf<[number, string]>();
+
+    debounced(1, "a");
+    timer.advanceTimersByTime(10);
+
+    expect(typed).toHaveBeenCalledWith(1, "a");
+  });
+
+  it("should not call fn after cancel()", () => {
+    const debounced = debounce(fn, 50);
+
+    debounced("pending");
+    debounced.cancel();
+    timer.advanceTimersByTime(50);
+
+    expect(fn).not.toHaveBeenCalled();
+  });
+
+  it("should debounce again after cancel()", () => {
+    const debounced = debounce(fn, 50);
+
+    debounced("first");
+    debounced.cancel();
+    debounced("second");
+    timer.advanceTimersByTime(50);
+
+    expect(fn).toHaveBeenCalledTimes(1);
+    expect(fn).toHaveBeenCalledWith("second");
   });
 });

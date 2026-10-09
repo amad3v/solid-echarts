@@ -903,6 +903,50 @@ describe("inner handleResize", () => {
     vi.useRealTimers();
   });
 
+  it("cancels a pending debounced resize when the chart is disposed", () => {
+    vi.useFakeTimers();
+    MockResizeObserver.reset();
+    const chart = createMockChartWithInit();
+    const el = document.createElement("div");
+    defineConfSz(el, 300, 400);
+    const [container, setContainer] = createSignal<HTMLElement | null>(null);
+    const onResize = vi.fn();
+
+    setupChart(container, { onResize, resizeDebounce: 50 });
+    setContainer(el);
+
+    defineConfSz(el, 350, 500);
+    MockResizeObserver.instances[0]!.emit();
+    disposeRoot?.();
+    disposeRoot = undefined;
+    vi.advanceTimersByTime(50);
+
+    expect(chart.isDisposed).toHaveBeenCalled();
+    expect(onResize).not.toHaveBeenCalled();
+    vi.useRealTimers();
+  });
+
+  it("cancels a pending debounced resize when autoResize is turned off", () => {
+    vi.useFakeTimers();
+    MockResizeObserver.reset();
+    const chart = createMockChartWithInit();
+    const el = document.createElement("div");
+    defineConfSz(el, 300, 400);
+    const [container, setContainer] = createSignal<HTMLElement | null>(null);
+    const [autoResize, setAutoResize] = createSignal(true);
+
+    setupChart(container, { autoResize, resizeDebounce: 50 });
+    setContainer(el);
+
+    defineConfSz(el, 350, 500);
+    MockResizeObserver.instances[0]!.emit();
+    setAutoResize(false);
+    vi.advanceTimersByTime(50);
+
+    expect(chart.resize).not.toHaveBeenCalled();
+    vi.useRealTimers();
+  });
+
   it("does not call onResize when no callback is provided", () => {
     vi.useFakeTimers();
     MockResizeObserver.reset();

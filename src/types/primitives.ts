@@ -167,3 +167,14 @@ export type CreateChartEffectOptions = {
    */
   silent?: MaybeAccessor<boolean>;
 };
+
+/**
+ * A debounced function returned by {@link debounce}: same parameters as the
+ * wrapped function, plus `cancel` to drop a pending call.
+ *
+ * @typeParam A - Parameter types of the wrapped function.
+ */
+export type Debounced<A extends unknown[]> = ((...args: A) => void) & {
+  /** Clears the pending call, if any. The function can be called again afterwards. */
+  cancel: () => void;
+};
