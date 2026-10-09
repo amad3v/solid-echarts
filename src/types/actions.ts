@@ -29,6 +29,8 @@ export type ActionPayloadMap = {
   sankeyRoam: SankeyRoamPayload;
   focusNodeAdjacency: FocusNodeAdjacencyPayload;
   unfocusNodeAdjacency: UnfocusNodeAdjacencyPayload;
+  treeExpandAndCollapse: TreeExpandAndCollapsePayload;
+  dragNode: DragNodePayload;
 };
 
 export type ActionKind = keyof ActionPayloadMap;
@@ -372,6 +374,46 @@ export type UnfocusNodeAdjacencyPayload = SimplePayload<
 >;
 
 /**
+ * Payload of the `treeExpandAndCollapse` action: toggles a node of a tree
+ * series between expanded and collapsed. Fires `treeexpandandcollapse`.
+ *
+ * @remarks
+ *
+ * {@link SeriesQuery} fields narrow the tree series; omitting them toggles the
+ * node with that `dataIndex` in every tree series.
+ */
+export type TreeExpandAndCollapsePayload = SimplePayload<
+  "treeExpandAndCollapse",
+  SeriesQuery & {
+    /** Data index of the node to toggle. */
+    dataIndex: number;
+  }
+>;
+
+/**
+ * Payload of the `dragNode` action: moves a node of a **sankey** series
+ * (ECharts registers `dragNode` for sankey only, not for graph). Fires
+ * `dragnode`.
+ *
+ * @remarks
+ *
+ * `localX` / `localY` are fractions of the series layout size, not pixels:
+ * ECharts places the node at `localX * width`, `localY * height`, the values
+ * its own drag handler dispatches.
+ */
+export type DragNodePayload = SimplePayload<
+  "dragNode",
+  SeriesQuery & {
+    /** Raw data index of the node. */
+    dataIndex: number;
+    /** Horizontal position as a fraction of the layout width (`0` to `1`). */
+    localX: number;
+    /** Vertical position as a fraction of the layout height (`0` to `1`). */
+    localY: number;
+  }
+>;
+
+/**
  * Union of all built-in ECharts action payloads accepted by
  * {@link useChart `dispatch`} and {@link createAction}.
  *
@@ -426,5 +468,7 @@ export type ActionPayload =
   | SankeyRoamPayload
   | FocusNodeAdjacencyPayload
   | UnfocusNodeAdjacencyPayload
+  | TreeExpandAndCollapsePayload
+  | DragNodePayload
   // Escape hatch - custom actions registered via registerAction
   | Payload;

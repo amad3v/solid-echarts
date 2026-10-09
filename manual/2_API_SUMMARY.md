@@ -251,7 +251,8 @@ Typed factory functions for ECharts `dispatchAction` payloads. The factory injec
 The declared fields of each payload are type-checked. A payload argument is mandatory only for the
 actions ECharts cannot run without a field: `legendSelect`, `legendUnSelect` and
 `legendToggleSelect` (`name`), `timelineChange` (`currentIndex`) and `timelinePlayChange`
-(`playState`). Every other factory can be called with no arguments. Fields a payload type does not
+(`playState`), `treeExpandAndCollapse` (`dataIndex`) and `dragNode` (`dataIndex`, `localX`,
+`localY`). Every other factory can be called with no arguments. Fields a payload type does not
 declare are passed through unchecked, as `dispatchAction` accepts any extra field.
 
 ```ts
@@ -278,7 +279,12 @@ seActions.treeRoam({ seriesIndex: 0, zoom: 2, originX: 200, originY: 150 })
 seActions.sankeyRoam({ seriesIndex: 0, dx: 40, dy: 0 })
 seActions.focusNodeAdjacency({ seriesIndex: 0, dataIndex: 3 })
 seActions.unfocusNodeAdjacency({})
+seActions.treeExpandAndCollapse({ seriesIndex: 0, dataIndex: 1 })
+seActions.dragNode({ seriesIndex: 0, dataIndex: 1, localX: 0.5, localY: 0.25 }) // sankey only
 ```
+
+`dragNode` is registered by ECharts for sankey series only. Its `localX` / `localY` are fractions of
+the series layout width and height, not pixels.
 
 Factories are pure - no side effects. Use with `dispatch` from `useChart()` or with `createAction`.
 

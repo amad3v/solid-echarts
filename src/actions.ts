@@ -384,4 +384,31 @@ export const seActions = {
    * ```
    */
   unfocusNodeAdjacency: actionFactory("unfocusNodeAdjacency"),
+
+  /**
+   * Toggles a tree series node between expanded and collapsed.
+   *
+   * @param payload - `dataIndex` (required) identifies the node.
+   * `seriesId` / `seriesIndex` / `seriesName` narrow the tree series.
+   *
+   * @example
+   * ```ts
+   * dispatch(seActions.treeExpandAndCollapse({ seriesIndex: 0, dataIndex: 1 }));
+   * ```
+   */
+  treeExpandAndCollapse: actionFactory("treeExpandAndCollapse"),
+
+  /**
+   * Moves a sankey series node. ECharts registers `dragNode` for sankey only.
+   *
+   * @param payload - `dataIndex`, `localX` and `localY` (all required).
+   * `localX` / `localY` are fractions of the layout width and height, not
+   * pixels. `seriesId` / `seriesIndex` / `seriesName` narrow the series.
+   *
+   * @example
+   * ```ts
+   * dispatch(seActions.dragNode({ seriesIndex: 0, dataIndex: 1, localX: 0.5, localY: 0.25 }));
+   * ```
+   */
+  dragNode: actionFactory("dragNode"),
 } satisfies SeActions;

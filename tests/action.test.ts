@@ -5,11 +5,13 @@ import { seActions } from "../src/actions";
 import type {
   ComponentIdQuery,
   ComponentIndexQuery,
+  DragNodePayload,
   GeoRoamPayload,
   PayloadInput,
   RoamDelta,
   SeriesRoamPayload,
   TimelineChangePayload,
+  TreeExpandAndCollapsePayload,
 } from "../src/types/actions";
 import type { ActionCreatorTest } from "./utils/actions";
 import { testCases } from "./utils/actions";
@@ -118,6 +120,34 @@ describe("seActions", () => {
       expectTypeOf<GeoRoamPayload>().toExtend<RoamDelta>();
       expectTypeOf<GeoRoamPayload["geoIndex"]>().toEqualTypeOf<ComponentIndexQuery | undefined>();
       expectTypeOf<GeoRoamPayload["seriesName"]>().toEqualTypeOf<ComponentIdQuery | undefined>();
+    });
+  });
+
+  describe("tree and sankey node action creators", () => {
+    it("should type treeExpandAndCollapse with a required dataIndex", () => {
+      expectTypeOf(
+        seActions.treeExpandAndCollapse,
+      ).returns.toEqualTypeOf<TreeExpandAndCollapsePayload>();
+      expectTypeOf(seActions.treeExpandAndCollapse).toBeCallableWith({
+        seriesIndex: 0,
+        dataIndex: 1,
+      });
+      expectTypeOf<TreeExpandAndCollapsePayload["dataIndex"]>().toEqualTypeOf<number>();
+      // @ts-expect-error - dataIndex is required
+      seActions.treeExpandAndCollapse({ seriesIndex: 0 });
+    });
+
+    it("should type dragNode with required dataIndex, localX and localY", () => {
+      expectTypeOf(seActions.dragNode).returns.toEqualTypeOf<DragNodePayload>();
+      expectTypeOf(seActions.dragNode).toBeCallableWith({
+        seriesId: "flow",
+        dataIndex: 1,
+        localX: 0.5,
+        localY: 0.25,
+      });
+      expectTypeOf<DragNodePayload["seriesName"]>().toEqualTypeOf<ComponentIdQuery | undefined>();
+      // @ts-expect-error - localX and localY are required
+      seActions.dragNode({ seriesIndex: 0, dataIndex: 1 });
     });
   });
 });

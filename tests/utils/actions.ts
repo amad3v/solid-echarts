@@ -32,6 +32,8 @@ const cases: [ActionKind, PayloadTest][] = [
   ["sankeyRoam", { seriesName: "flow", dx: -5, dy: 0 }],
   ["focusNodeAdjacency", { seriesIndex: 0, dataIndex: 1 }],
   ["unfocusNodeAdjacency", { seriesIndex: 0, dataIndex: 1 }],
+  ["treeExpandAndCollapse", { seriesIndex: 0, dataIndex: 1 }],
+  ["dragNode", { seriesId: "flow", dataIndex: 1, localX: 0.5, localY: 0.25 }],
 ];
 
 export const testCases: ActionCreatorTest[] = cases.map(([name, payload]) => ({
