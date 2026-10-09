@@ -192,6 +192,10 @@ export type EventParams = {
    * Which part of the element fired the event. `"line"` or `"area"` on a
    * line series (ECharts 6.1+), `"breadcrumb"` on a treemap breadcrumb.
    * Absent otherwise.
+   *
+   * A line series emits mouse events on its line and area only with the
+   * series option `triggerEvent: true` (both), `"line"` or `"area"`;
+   * the default is `false`.
    */
   selfType?: "line" | "area" | "breadcrumb";
 };

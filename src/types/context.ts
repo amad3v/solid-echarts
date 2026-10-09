@@ -46,7 +46,9 @@ type ChartConfig = Required<EChartsInitOpts> & {
    * Provider-level defaults for `setOption` merge behaviour.
    * Accepts a static object or a reactive accessor.
    * Per-chart `notMerge`, `replaceMerge`, `lazyUpdate`, `silent`, and
-   * `autoMerge` props always override the corresponding field here.
+   * `autoMerge` props override the corresponding field here. A per-chart
+   * `updateOptions` prop replaces this object as a whole; its fields are
+   * not merged with these.
    */
   updateOptions: CreateChartEffectOptions;
 };

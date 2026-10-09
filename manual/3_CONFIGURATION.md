@@ -82,6 +82,8 @@ is created only once its container first enters the viewport:
 - A container inside a hidden parent (`display: none`) is not visible; the chart is created when the
   parent is shown.
 - Where `IntersectionObserver` is not available, the chart is created immediately.
+- The init-time props (`locale`, `devicePixelRatio`, ...) are read when the chart is created, so a
+  value changed while waiting for visibility is used.
 
 **Several signal writes, one render.** Each change of the `option` accessor calls `setOption`, and
 ECharts renders synchronously by default. Writing three signals that feed one option therefore
@@ -95,7 +97,8 @@ batch(() => {
 ```
 
 Alternatively set `lazyUpdate` (per chart, or through the provider's `updateOptions`): ECharts then
-merges each option immediately and renders once on the next frame. With `lazyUpdate`, values read
+merges each option immediately and updates the chart once, on the next frame (`updated` and
+`finished` fire once; `rendered` can fire more than once in that frame). With `lazyUpdate`, values read
 right after a change (`convertToPixel`, `getDataURL`, ...) still reflect the previous render.
 
 ---

@@ -283,6 +283,11 @@ seActions.treeExpandAndCollapse({ seriesIndex: 0, dataIndex: 1 })
 seActions.dragNode({ seriesIndex: 0, dataIndex: 1, localX: 0.5, localY: 0.25 }) // sankey only
 ```
 
+Legend actions and their events: `legendToggleSelect` fires `legendselectchanged` (as does a click
+on a legend item), `legendSelect` fires `legendselected`, `legendUnSelect` fires `legendunselected`,
+`legendAllSelect` fires `legendselectall` and `legendInverseSelect` fires `legendinverseselect`. A
+`legendselectchanged` listener does not see `legendSelect` / `legendUnSelect`.
+
 `dragNode` is registered by ECharts for sankey series only. Its `localX` / `localY` are fractions of
 the series layout width and height, not pixels.
 
