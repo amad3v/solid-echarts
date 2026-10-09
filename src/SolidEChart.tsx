@@ -198,24 +198,27 @@ export const SolidEChart: ParentComponent<SolidEChartProps> = (props) => {
   const resolvedInitOnVisible = resolveConfigProp<boolean>("initOnVisible");
 
   // Core instance
-  // `locale`, `devicePixelRatio`, `useDirtyRect`, `resizeDebounce`, and `initOnVisible` are untracked,
-  // they are static init-time values with no in-place update path in `ECharts`.
-  // Changes after mount have no effect and should not trigger side effects.
+  // The init-time props (`locale`, `devicePixelRatio`, `useDirtyRect`, ...,
+  // `resizeDebounce`) are passed as accessors: `createChart` reads them
+  // untracked whenever it creates an instance (renderer reinit, delayed
+  // `initOnVisible` init), so a new instance uses the current values. A
+  // change alone never reinits, `ECharts` has no in-place update for them.
+  // `initOnVisible` only gates the first init and is read once.
   const { instance } = createChart(containerElement, {
     theme: resolvedTheme,
     renderer: resolvedRenderer,
     group: resolvedGroup,
     autoResize: resolvedAutoResize,
-    locale: untrack(resolvedLocale),
-    devicePixelRatio: untrack(resolvedDevicePixelRatio),
-    useDirtyRect: untrack(resolvedUseDirtyRect),
-    useCoarsePointer: untrack(resolvedUseCoarsePointer),
-    pointerSize: untrack(resolvedPointerSize),
-    resizeDebounce: untrack(resolvedResizeDebounce),
+    locale: resolvedLocale,
+    devicePixelRatio: resolvedDevicePixelRatio,
+    useDirtyRect: resolvedUseDirtyRect,
+    useCoarsePointer: resolvedUseCoarsePointer,
+    pointerSize: resolvedPointerSize,
+    resizeDebounce: resolvedResizeDebounce,
     initOnVisible: untrack(resolvedInitOnVisible),
-    ssr: untrack(resolvedSSR),
-    width: untrack(resolvedWidth),
-    height: untrack(resolvedHeight),
+    ssr: resolvedSSR,
+    width: resolvedWidth,
+    height: resolvedHeight,
     // onResize is static, read once at init time, changes have no effect
     onResize: chartProps.onResize,
   } as CreateChartOptions);

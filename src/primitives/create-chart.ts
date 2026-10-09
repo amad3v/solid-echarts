@@ -4,7 +4,7 @@ import { createEffect, createSignal, on, onCleanup, untrack } from "solid-js";
 import { registerThemeRevision } from "@primitive/theme-revision";
 import type { EChartTheme } from "@type/common";
 import type { CreateChartOptions, CreateChartResult } from "@type/primitives";
-import { DEFAULT_THEME, toAccessor } from "@utils/common";
+import { DEFAULT_THEME, resolveMaybeAccessor, toAccessor } from "@utils/common";
 import { debounce } from "@utils/primitives";
 import type { EChartsInitOpts, EChartsType } from "echarts/core";
 import * as echarts from "echarts/core";
@@ -76,19 +76,27 @@ export const createChart = (
   const group = toAccessor(opts.group);
   const autoResize = toAccessor(opts.autoResize ?? true);
 
-  const {
-    locale,
-    devicePixelRatio,
-    useDirtyRect,
-    useCoarsePointer,
-    pointerSize,
-    ssr,
-    width,
-    height,
-    resizeDebounce: debounceMs = 100,
-    onResize,
-    initOnVisible = false,
-  } = opts;
+  const { onResize, initOnVisible = false } = opts;
+
+  // Init-time options are read untracked whenever an instance is created, so
+  // a renderer reinit or a delayed `initOnVisible` init uses current values.
+  // A change on its own never reinits: ECharts has no in-place update for them.
+  // Cast: under `exactOptionalPropertyTypes` an unset option is `undefined`
+  // here, which ECharts treats the same as a missing key.
+  const readInitOptions = (): Omit<EChartsInitOpts, "renderer"> =>
+    untrack(
+      () =>
+        ({
+          locale: resolveMaybeAccessor(opts.locale),
+          devicePixelRatio: resolveMaybeAccessor(opts.devicePixelRatio),
+          useDirtyRect: resolveMaybeAccessor(opts.useDirtyRect),
+          useCoarsePointer: resolveMaybeAccessor(opts.useCoarsePointer),
+          ssr: resolveMaybeAccessor(opts.ssr),
+          width: resolveMaybeAccessor(opts.width),
+          height: resolveMaybeAccessor(opts.height),
+          pointerSize: resolveMaybeAccessor(opts.pointerSize),
+        }) as Omit<EChartsInitOpts, "renderer">,
+    );
 
   const [instance, setInstance] = createSignal<EChartsType | null>(null);
   const [prevGroup, setPrevGroup] = createSignal<string | undefined>();
@@ -148,17 +156,7 @@ export const createChart = (
       ([element, rendererValue, isVisible]) => {
         if (!element || !isVisible) return;
 
-        const initOptions = {
-          renderer: rendererValue,
-          locale,
-          devicePixelRatio,
-          useDirtyRect,
-          useCoarsePointer,
-          ssr,
-          width,
-          height,
-          pointerSize,
-        } as EChartsInitOpts;
+        const initOptions: EChartsInitOpts = { ...readInitOptions(), renderer: rendererValue };
 
         // Apply theme before `setInstance` so the first `createChartEffect` call
         // already renders with the correct palette.
@@ -308,6 +306,7 @@ export const createChart = (
       onResize?.();
     };
 
+    const debounceMs = untrack(() => resolveMaybeAccessor(opts.resizeDebounce)) ?? 100;
     const debouncedResize = debounceMs > 0 ? debounce(handleResize, debounceMs) : handleResize;
 
     resizeObserver = new ResizeObserver(debouncedResize);

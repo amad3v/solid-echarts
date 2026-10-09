@@ -19,17 +19,18 @@ import type { SolidEChartAPI } from "./use-chart";
  * - `renderer`: `"canvas"` (default, better performance for large datasets)
  *   or `"svg"` (better for SSR, accessibility, and high-DPI without blur).
  *   Changing this after mount triggers a full dispose -> reinit cycle.
- * - `locale`: ECharts locale string (e.g. `"EN"`, `"ZH"`). Static,
- *   only read at init time, changes after mount have no effect.
+ * - `locale`: ECharts locale string (e.g. `"EN"`, `"ZH"`). Init-time:
+ *   read when an instance is created, a change applies to the next one.
  * - `group`: group ID for connected charts. Charts sharing the same group
  *   sync datazoom and tooltip automatically via `echarts.connect`.
- * - `devicePixelRatio`: overrides `window.devicePixelRatio`. Static.
+ * - `devicePixelRatio`: overrides `window.devicePixelRatio`. Init-time.
  * - `useDirtyRect`: enables dirty rectangle rendering optimisation.
- *   Improves performance for charts with frequent partial updates. Static.
+ *   Improves performance for charts with frequent partial updates. Init-time.
  * - `autoResize`: attaches a `ResizeObserver` to call `chart.resize`
  *   when the container dimensions change. Defaults to `true`.
  * - `resizeDebounce`: debounce delay in milliseconds for `autoResize`
  *   callbacks. Defaults to `100`. Set to `0` to disable debouncing.
+ *   Read when the `ResizeObserver` is attached.
  * - `initOnVisible`: creates the instance only once the container first
  *   enters the viewport. Defaults to `false`. Static.
  *
@@ -60,9 +61,11 @@ type ChartConfig = Required<EChartsInitOpts> & {
  * a subtree, or directly on `SolidEChart` to configure a single instance.
  * Per-chart props always override provider values.
  *
- * Properties marked as static in {@link CreateChartOptions} (`locale`,
- * `devicePixelRatio`, `useDirtyRect`, `resizeDebounce`, `initOnVisible`) are only read at
- * init time - changes after mount have no effect.
+ * The `echarts.init` options (`locale`, `devicePixelRatio`, `useDirtyRect`,
+ * `useCoarsePointer`, `pointerSize`, `ssr`, `width`, `height`) are read when
+ * an instance is created: a change never touches the live chart, the next
+ * instance (renderer change, delayed `initOnVisible` init) uses the current
+ * value. `initOnVisible` is read once. See {@link CreateChartOptions}.
  *
  * @see {@link SolidEChartProvider} for subtree-level configuration
  * @see {@link SolidEChartProps} for the full component prop surface

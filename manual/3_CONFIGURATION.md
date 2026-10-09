@@ -144,10 +144,14 @@ Always pass a signal or accessor: `option={() => ({ ... })}`.
 the effect. Changing them after mount takes effect on
 the next natural trigger (instance or option change), not immediately.
 
-**Static props are read once.**
-`locale`, `devicePixelRatio`, `useDirtyRect`, `resizeDebounce`, `initOnVisible`, `width`, `height`,
-`ssr`, `useCoarsePointer`, `pointerSize`, and `onResize` are read at `echarts.init()` time.
-Subsequent changes - even reactive ones - have no effect.
+**Init-time props apply to the next instance.**
+`locale`, `devicePixelRatio`, `useDirtyRect`, `width`, `height`, `ssr`, `useCoarsePointer` and
+`pointerSize` are `echarts.init()` options: ECharts cannot change them on a live chart. They are read
+every time an instance is created (first init, `renderer` change, delayed `initOnVisible` init), so
+a new instance always uses the current values. Changing one does not recreate the chart; to apply it
+right away, change `renderer` or remount the component (for example with `<Show when={key()} keyed>`).
+`resizeDebounce` is read when the `ResizeObserver` is attached. `initOnVisible` and `onResize` are
+read once at mount.
 
 **`renderer` is the only reinit-triggering prop.**
 All other configuration changes update in place. On `renderer` change, `instance()` transiently emits

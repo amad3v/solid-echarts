@@ -159,6 +159,108 @@ describe("instance initialisation", () => {
   });
 });
 
+describe("init-time options", () => {
+  it("should accept init options as accessors", () => {
+    const el = document.createElement("div");
+    const [container, setContainer] = createSignal<HTMLDivElement | null>(null);
+    createMockChartWithInit();
+
+    setupChart(container, { locale: () => "ZH", devicePixelRatio: () => 2, width: () => 300 });
+    setContainer(el);
+
+    expect(echartsCore.init).toHaveBeenCalledWith(
+      el,
+      DEFAULT_THEME,
+      expect.objectContaining({ locale: "ZH", devicePixelRatio: 2, width: 300 }),
+    );
+  });
+
+  it("should not reinit when an init option accessor changes", () => {
+    const [container, setContainer] = createSignal<HTMLDivElement | null>(null);
+    const [locale, setLocale] = createSignal("EN");
+    const chart = createMockChartWithInit();
+
+    setupChart(container, { locale });
+    setContainer(document.createElement("div"));
+    setLocale("ZH");
+
+    expect(echartsCore.init).toHaveBeenCalledTimes(1);
+    expect(chart.dispose).not.toHaveBeenCalled();
+  });
+
+  it("should create a renderer reinit with the current init option values", () => {
+    const [container, setContainer] = createSignal<HTMLDivElement | null>(null);
+    const [renderer, setRenderer] = createSignal<"canvas" | "svg">("canvas");
+    const [locale, setLocale] = createSignal("EN");
+    const [dpr, setDpr] = createSignal(1);
+    vi.mocked(echartsCore.init)
+      .mockReturnValueOnce(createMockInstance())
+      .mockReturnValueOnce(createMockInstance());
+
+    setupChart(container, { renderer, locale, devicePixelRatio: dpr });
+    setContainer(document.createElement("div"));
+
+    setLocale("ZH");
+    setDpr(2);
+    setRenderer("svg");
+
+    expect(vi.mocked(echartsCore.init).mock.calls[0]?.[2]).toMatchObject({
+      renderer: "canvas",
+      locale: "EN",
+      devicePixelRatio: 1,
+    });
+    expect(vi.mocked(echartsCore.init).mock.calls[1]?.[2]).toMatchObject({
+      renderer: "svg",
+      locale: "ZH",
+      devicePixelRatio: 2,
+    });
+  });
+
+  it("should init with the init option values current when the container arrives", () => {
+    const el = document.createElement("div");
+    const [container, setContainer] = createSignal<HTMLDivElement | null>(null);
+    const [locale, setLocale] = createSignal("EN");
+    createMockChartWithInit();
+
+    setupChart(container, { locale });
+    setLocale("ZH");
+    setContainer(el);
+
+    expect(echartsCore.init).toHaveBeenCalledWith(
+      el,
+      DEFAULT_THEME,
+      expect.objectContaining({ locale: "ZH" }),
+    );
+  });
+
+  it("should debounce with the resizeDebounce value current when the observer attaches", () => {
+    vi.useFakeTimers();
+    MockResizeObserver.reset();
+    const chart = createMockChartWithInit();
+    const el = document.createElement("div");
+    defineConfSz(el, 300, 400);
+    const [container, setContainer] = createSignal<HTMLElement | null>(null);
+    const [autoResize, setAutoResize] = createSignal(false);
+    const [debounceMs, setDebounceMs] = createSignal(10);
+
+    setupChart(container, { autoResize, resizeDebounce: debounceMs });
+    setContainer(el);
+    setDebounceMs(50);
+    setAutoResize(true);
+
+    const resizeObserver = MockResizeObserver.instances[0]!;
+    defineConfSz(el, 350, 500);
+    resizeObserver.emit();
+
+    vi.advanceTimersByTime(10);
+    expect(chart.resize).not.toHaveBeenCalled();
+
+    vi.advanceTimersByTime(40);
+    expect(chart.resize).toHaveBeenCalledTimes(1);
+    vi.useRealTimers();
+  });
+});
+
 describe("theme", () => {
   it("should pass the initial theme to echarts.init", () => {
     const el = document.createElement("div");
@@ -953,6 +1055,16 @@ describe("initOnVisible", () => {
     expect(echartsCore.init).toHaveBeenCalledWith(el, DEFAULT_THEME, expect.any(Object));
     expect(instance()).toBe(chart);
     expect(disconnectSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it("should init with the init option values current when the container becomes visible", () => {
+    const [locale, setLocale] = createSignal("EN");
+    mountWithGate({ locale });
+
+    setLocale("ZH");
+    MockIntersectionObserver.instances[0]!.emit(true);
+
+    expect(vi.mocked(echartsCore.init).mock.calls[0]?.[2]).toMatchObject({ locale: "ZH" });
   });
 
   it("should keep the instance when the container leaves the viewport again", () => {

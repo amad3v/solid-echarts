@@ -27,13 +27,16 @@ prop stays reactive in each:
 ### Reactive vs. Static Props
 
 Some props are reactive — they update the chart in place when the signal changes.
-Others are **static** — read once at init time; changes after mount have no effect.
+Others are **init-time** — ECharts only accepts them when it creates an instance. A change does
+not touch the live chart; the next instance (after a `renderer` change, or the delayed one from
+`initOnVisible`) is created with the current values.
 
-| Category | Props                                                                                                                                        | Behaviour                                  |
-| -------- | -------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------ |
-| Reactive | `theme`, `group`, `autoResize`, `renderer`                                                                                                   | Update in place (or reinit for `renderer`) |
-| Reactive | `option`, `loading`, `loadingOptions`                                                                                                        | Update chart state                         |
-| Static   | `locale`, `devicePixelRatio`, `useDirtyRect`, `resizeDebounce`, `initOnVisible`, `width`, `height`, `ssr`, `useCoarsePointer`, `pointerSize` | Read at `echarts.init()` only              |
+| Category  | Props                                                                                                                       | Behaviour                                  |
+| --------- | --------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------ |
+| Reactive  | `theme`, `group`, `autoResize`, `renderer`                                                                                  | Update in place (or reinit for `renderer`) |
+| Reactive  | `option`, `loading`, `loadingOptions`                                                                                       | Update chart state                         |
+| Init-time | `locale`, `devicePixelRatio`, `useDirtyRect`, `resizeDebounce`, `width`, `height`, `ssr`, `useCoarsePointer`, `pointerSize` | Read when an instance is created           |
+| Static    | `initOnVisible`, `onResize`                                                                                                 | Read once at mount                         |
 
 ### Instance Lifecycle
 

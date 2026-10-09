@@ -10,22 +10,26 @@ The primary component. All props are optional, but `option` must be an accessor 
 
 #### Configuration props
 
+**Init-time** props are `echarts.init()` options. A change does not touch the live chart; the next
+instance (after a `renderer` change, or the delayed one from `initOnVisible`) is created with the
+current value. **Static** props are read once at mount.
+
 | Prop               | Type                               | Default                   | Notes                                                                                                                            |
 | ------------------ | ---------------------------------- | ------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
 | `option`           | `Accessor<SolidEChartOption>`      | -                         | Reactive. Drives `setOption`. Omit for manual mode.                                                                              |
 | `theme`            | `MaybeAccessor<string \| object>`  | `'default'`               | Calls `setTheme()` in place, then applies the current `option` again.                                                            |
 | `renderer`         | `MaybeAccessor<'canvas' \| 'svg'>` | `'canvas'`                | Triggers full reinit on change.                                                                                                  |
-| `locale`           | `MaybeAccessor<string>`            | `'EN'`                    | **Static.**                                                                                                                      |
+| `locale`           | `MaybeAccessor<string>`            | `'EN'`                    | **Init-time.**                                                                                                                   |
 | `group`            | `MaybeAccessor<string>`            | -                         | Calls `echarts.connect()` in place.                                                                                              |
-| `devicePixelRatio` | `MaybeAccessor<number>`            | `window.devicePixelRatio` | **Static.**                                                                                                                      |
-| `useDirtyRect`     | `MaybeAccessor<boolean>`           | `false`                   | **Static.**                                                                                                                      |
-| `useCoarsePointer` | `MaybeAccessor<boolean>`           | -                         | **Static.** Unset: ECharts enables the enlarged pointer on touch devices.                                                        |
-| `pointerSize`      | `MaybeAccessor<number>`            | -                         | **Static.** Unset: ECharts uses `44`.                                                                                            |
-| `ssr`              | `MaybeAccessor<boolean>`           | `false`                   | **Static.**                                                                                                                      |
-| `width`            | `MaybeAccessor<number \| string>`  | -                         | **Static.** Passed to `echarts.init()`.                                                                                          |
-| `height`           | `MaybeAccessor<number \| string>`  | -                         | **Static.** Passed to `echarts.init()`.                                                                                          |
+| `devicePixelRatio` | `MaybeAccessor<number>`            | `window.devicePixelRatio` | **Init-time.**                                                                                                                   |
+| `useDirtyRect`     | `MaybeAccessor<boolean>`           | `false`                   | **Init-time.**                                                                                                                   |
+| `useCoarsePointer` | `MaybeAccessor<boolean>`           | -                         | **Init-time.** Unset: ECharts enables the enlarged pointer on touch devices.                                                     |
+| `pointerSize`      | `MaybeAccessor<number>`            | -                         | **Init-time.** Unset: ECharts uses `44`.                                                                                         |
+| `ssr`              | `MaybeAccessor<boolean>`           | `false`                   | **Init-time.**                                                                                                                   |
+| `width`            | `MaybeAccessor<number \| string>`  | -                         | **Init-time.** Passed to `echarts.init()`.                                                                                       |
+| `height`           | `MaybeAccessor<number \| string>`  | -                         | **Init-time.** Passed to `echarts.init()`.                                                                                       |
 | `autoResize`       | `MaybeAccessor<boolean>`           | `true`                    | Attaches/detaches `ResizeObserver` in place.                                                                                     |
-| `resizeDebounce`   | `MaybeAccessor<number>`            | `100`                     | **Static.** Milliseconds. `0` disables debounce.                                                                                 |
+| `resizeDebounce`   | `MaybeAccessor<number>`            | `100`                     | **Init-time.** Milliseconds, read when the resize observer attaches. `0` disables debounce.                                      |
 | `initOnVisible`    | `MaybeAccessor<boolean>`           | `false`                   | **Static.** Creates the chart once its container first enters the viewport. See [Performance](./3_CONFIGURATION.md#performance). |
 | `loading`          | `MaybeAccessor<boolean>`           | `false`                   | Calls `showLoading()` / `hideLoading()`.                                                                                         |
 | `loadingOptions`   | `MaybeAccessor<LoadingOptions>`    | -                         | Passed to `showLoading()`.                                                                                                       |
@@ -170,15 +174,15 @@ createChartEffect(instance, option);
 | `opts.renderer`         | `MaybeAccessor<'canvas' \| 'svg'>`           | Reactive. Triggers reinit on change.                                 |
 | `opts.group`            | `MaybeAccessor<string>`                      | Reactive. Updated via `chart.group` + `connect()`.                   |
 | `opts.autoResize`       | `MaybeAccessor<boolean>`                     | Reactive. Toggles `ResizeObserver`.                                  |
-| `opts.locale`           | `string`                                     | Static.                                                              |
-| `opts.devicePixelRatio` | `number`                                     | Static.                                                              |
-| `opts.useDirtyRect`     | `boolean`                                    | Static.                                                              |
-| `opts.useCoarsePointer` | `boolean`                                    | Static.                                                              |
-| `opts.pointerSize`      | `number`                                     | Static.                                                              |
-| `opts.ssr`              | `boolean`                                    | Static.                                                              |
-| `opts.width`            | `number \| string`                           | Static.                                                              |
-| `opts.height`           | `number \| string`                           | Static.                                                              |
-| `opts.resizeDebounce`   | `number`                                     | Static. Default `100`.                                               |
+| `opts.locale`           | `MaybeAccessor<string>`                      | Init-time.                                                           |
+| `opts.devicePixelRatio` | `MaybeAccessor<number>`                      | Init-time.                                                           |
+| `opts.useDirtyRect`     | `MaybeAccessor<boolean>`                     | Init-time.                                                           |
+| `opts.useCoarsePointer` | `MaybeAccessor<boolean>`                     | Init-time.                                                           |
+| `opts.pointerSize`      | `MaybeAccessor<number>`                      | Init-time.                                                           |
+| `opts.ssr`              | `MaybeAccessor<boolean>`                     | Init-time.                                                           |
+| `opts.width`            | `MaybeAccessor<number \| string>`            | Init-time.                                                           |
+| `opts.height`           | `MaybeAccessor<number \| string>`            | Init-time.                                                           |
+| `opts.resizeDebounce`   | `MaybeAccessor<number>`                      | Init-time. Default `100`. Read when the observer attaches.           |
 | `opts.initOnVisible`    | `boolean`                                    | Static. Default `false`. Defers init until the container is visible. |
 | `opts.onResize`         | `() => void`                                 | Static. Called after `chart.resize()`.                               |
 

@@ -48,8 +48,9 @@ type CreateChartMaybeOptions = {
  * @remarks
 
  * Reactive options (in CreateChartMaybeOptions) accept both plain
- * values and accessors. Static options are plain values only - they are
- * read once at init time and changes after mount have no effect.
+ * values and accessors. Init-time options accept both as well, but a change
+ * is never applied to the live instance; the next instance picks it up.
+ * `initOnVisible` and `onResize` are plain values, read once.
  *
  * **Reactive - updated in place after mount:**
  * - `renderer` - reinits the instance (only option that does)
@@ -57,19 +58,24 @@ type CreateChartMaybeOptions = {
  * - `group` - updates `chart.group` and calls `connect`
  * - `autoResize` - attaches or detaches the `ResizeObserver`
  *
- * **Static - read at init time only:**
- * - `locale`, `devicePixelRatio`, `useDirtyRect`, `resizeDebounce`, `initOnVisible`
+ * **Init-time - read when an instance is created:**
+ * - The `echarts.init` options (`locale`, `devicePixelRatio`, `useDirtyRect`,
+ *   `useCoarsePointer`, `pointerSize`, `ssr`, `width`, `height`): read
+ *   untracked every time an instance is created (first init, renderer
+ *   reinit, delayed init with `initOnVisible`). A change does not reinit.
+ * - `resizeDebounce`: read when the `ResizeObserver` is attached.
  *
  * @see {@link createChart}
  */
 export type CreateChartOptions = Partial<WithMaybeAccessor<CreateChartMaybeOptions>> &
-  Omit<EChartsInitOpts, "renderer"> & {
+  Partial<WithMaybeAccessor<Omit<EChartsInitOpts, "renderer">>> & {
     /**
      * Debounce delay in milliseconds for `ResizeObserver` callbacks.
      * Defaults to `100`. Set to `0` to call `chart.resize` on every
-     * observation without debouncing. Static.
+     * observation without debouncing. Read when the observer is attached
+     * (each new instance, or `autoResize` turned on).
      */
-    resizeDebounce?: number;
+    resizeDebounce?: MaybeAccessor<number | undefined>;
 
     /**
      * When `true`, the instance is created only once the container first

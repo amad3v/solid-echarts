@@ -214,6 +214,48 @@ describe("static init-time props (locale, devicePixelRatio, useDirtyRect)", () =
   });
 });
 
+describe("init-time props on a new instance", () => {
+  it("should create a renderer reinit with the current per-chart locale", () => {
+    createSequentialMockCharts();
+    const [locale, setLocale] = createSignal("EN");
+    const [renderer, setRenderer] = createSignal<EChartRenderer>("canvas");
+    render(() => <SolidEChart locale={locale} renderer={renderer} style={STYLE} />);
+
+    setLocale("ZH");
+    expect(echartsCore.init).toHaveBeenCalledTimes(1);
+
+    setRenderer("svg");
+
+    expect(vi.mocked(echartsCore.init).mock.calls[1]?.[2]).toMatchObject({
+      renderer: "svg",
+      locale: "ZH",
+    });
+  });
+
+  it("should create a renderer reinit with the current provider init options", () => {
+    createSequentialMockCharts();
+    const [dpr, setDpr] = createSignal(1);
+    const [renderer, setRenderer] = createSignal<EChartRenderer>("canvas");
+    render(() => (
+      <SolidEChartProvider devicePixelRatio={dpr} useDirtyRect={() => dpr() > 1}>
+        <SolidEChart renderer={renderer} style={STYLE} />
+      </SolidEChartProvider>
+    ));
+
+    setDpr(2);
+    setRenderer("svg");
+
+    expect(vi.mocked(echartsCore.init).mock.calls[0]?.[2]).toMatchObject({
+      devicePixelRatio: 1,
+      useDirtyRect: false,
+    });
+    expect(vi.mocked(echartsCore.init).mock.calls[1]?.[2]).toMatchObject({
+      devicePixelRatio: 2,
+      useDirtyRect: true,
+    });
+  });
+});
+
 describe("initOnVisible propagation", () => {
   beforeEach(() => {
     MockIntersectionObserver.reset();
