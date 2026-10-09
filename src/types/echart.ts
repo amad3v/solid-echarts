@@ -97,7 +97,8 @@ export type SolidEChartEventName =
   | "changeaxisorder"
   | "finished"
   | "downplay"
-  | "rendered";
+  | "rendered"
+  | "updated";
 
 /**
  * @see {@link https://echarts.apache.org/en/api.html#echartsInstance.showLoading `echartsInstance.showLoading` [external]}
@@ -205,13 +206,14 @@ export type RenderedEventParams = {
 
 /**
  * Events whose first handler argument is not {@link EventParams}.
- * `finished` is triggered without any argument.
+ * `finished` and `updated` are triggered without any argument.
  *
  * @internal
  */
 type LifecycleEventParamsMap = {
   rendered: RenderedEventParams;
   finished: undefined;
+  updated: undefined;
 };
 
 /**
@@ -233,7 +235,7 @@ export type SolidEChartEventHandler<P = EventParams> = (params: P, instance: ECh
  * only the events you care about need to be provided.
  *
  * Handlers receive {@link EventParams}, except `rendered`
- * ({@link RenderedEventParams}) and `finished` (`undefined`).
+ * ({@link RenderedEventParams}), `finished` and `updated` (`undefined`).
  */
 export type SolidEChartEventMap = {
   [K in SolidEChartEventName]?: SolidEChartEventHandler<

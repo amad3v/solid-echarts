@@ -51,12 +51,12 @@ and new option structure and automatically selects the minimal merge strategy. `
 
 #### Event props
 
-| Prop                  | Type                                                           | Notes                                                                                                                                                                                     |
-| --------------------- | -------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `onEvents`            | `SolidEChartEventMap`                                          | Registered via `chart.on()`. Each handler receives `(params: EventParams, instance: EChartsType)`. `rendered` receives `{ elapsedTime }` and `finished` receives `undefined` as `params`. |
-| `onEventsOnce`        | Same as above                                                  | Self-removes after first invocation.                                                                                                                                                      |
-| `onSurfaceEvents`     | `Partial<Record<ElementEventName, SolidEChartSurfaceHandler>>` | Registered on `chart.getZr().on()`. Fires anywhere on the canvas surface.                                                                                                                 |
-| `onSurfaceEventsOnce` | Same as above                                                  | Self-removes after first invocation.                                                                                                                                                      |
+| Prop                  | Type                                                           | Notes                                                                                                                                                                                               |
+| --------------------- | -------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `onEvents`            | `SolidEChartEventMap`                                          | Registered via `chart.on()`. Each handler receives `(params: EventParams, instance: EChartsType)`. `rendered` receives `{ elapsedTime }`; `finished` and `updated` receive `undefined` as `params`. |
+| `onEventsOnce`        | Same as above                                                  | Self-removes after first invocation.                                                                                                                                                                |
+| `onSurfaceEvents`     | `Partial<Record<ElementEventName, SolidEChartSurfaceHandler>>` | Registered on `chart.getZr().on()`. Fires anywhere on the canvas surface.                                                                                                                           |
+| `onSurfaceEventsOnce` | Same as above                                                  | Self-removes after first invocation.                                                                                                                                                                |
 
 **`onEventsOnce`**
 

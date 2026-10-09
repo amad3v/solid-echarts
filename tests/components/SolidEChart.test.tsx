@@ -17,7 +17,7 @@ import type { EChartsType } from "echarts/core";
 import * as echartsCore from "echarts/core";
 import { beforeEach, describe, expect, expectTypeOf, it, vi } from "vitest";
 
-import type { EChartsOption } from "../../src";
+import type { EChartsOption, LoadingOptions, MaybeAccessor, SolidEChartProps } from "../../src";
 import { seActions } from "../../src/actions";
 import { useChart } from "../../src/context/use-chart";
 import { DARK_THEME, DEFAULT_THEME } from "../../src/helpers/common";
@@ -582,6 +582,15 @@ describe("onEvents prop", () => {
     >();
     expectTypeOf<SolidEChartEventMap["finished"]>().toEqualTypeOf<
       ((params: undefined, instance: EChartsType) => void) | undefined
+    >();
+    expectTypeOf<SolidEChartEventMap["updated"]>().toEqualTypeOf<
+      ((params: undefined, instance: EChartsType) => void) | undefined
+    >();
+  });
+
+  it("should export LoadingOptions as the type of the loadingOptions prop", () => {
+    expectTypeOf<SolidEChartProps["loadingOptions"]>().toEqualTypeOf<
+      MaybeAccessor<LoadingOptions> | undefined
     >();
   });
 

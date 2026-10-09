@@ -23,6 +23,7 @@ export type {
   EchartsRef,
   ElementEventName,
   EventParams,
+  LoadingOptions,
   RenderedEventParams,
   SolidEChartEventMap,
   SolidEChartOption,
