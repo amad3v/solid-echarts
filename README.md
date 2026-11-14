@@ -10,6 +10,10 @@
 
 ---
 
+> **Repository mirror**
+>
+> This repository is a read-only mirror. Development, issue tracking and pull requests are handled on the [Codeberg repository](https://codeberg.org/amad3v/solid-echarts/settings).
+
 ## Overview
 
 `solid-echarts` is a thin, idiomatic SolidJS wrapper around [Apache ECharts 6](https://echarts.apache.org/). It exposes:
